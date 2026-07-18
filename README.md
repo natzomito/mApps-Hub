@@ -8,7 +8,7 @@ mApps are single-file HTML mini-apps: a med reminder generator, a Morse trainer,
 
 ## Install the Hub (iPhone)
 
-1. Open **https://YOUR-LOGIN.github.io/mApps-Hub/** in Safari
+1. Open **https://natzomito.github.io/mApps-Hub/** in Safari
 2. Share → **Add to Home Screen**
 3. Done — the Hub runs fullscreen with its own icon and works offline
 
