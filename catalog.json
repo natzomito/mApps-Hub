@@ -1,0 +1,63 @@
+{
+  "mappsHub": 1,
+  "updated": "2026-07-18",
+  "apps": [
+    {
+      "id": "med-schedule",
+      "name": "Med Schedule",
+      "description": "Enter your medications and dosing schedule, get an .ics calendar file with daily reminders. 100% on-device — no data ever leaves your phone.",
+      "author": "borzast",
+      "version": "1.0",
+      "tags": [
+        "health",
+        "calendar",
+        "reminders"
+      ],
+      "languages": [
+        "pl",
+        "en"
+      ],
+      "network": false,
+      "translationWanted": [],
+      "path": "apps/med-schedule"
+    },
+    {
+      "id": "morse",
+      "name": "Morse",
+      "description": "Learn Morse code by ear with the Koch method, browse the alphabet, and translate text to Morse with real audio playback (WebAudio, 8-25 WPM).",
+      "author": "borzast",
+      "version": "1.0",
+      "tags": [
+        "learning",
+        "radio",
+        "audio"
+      ],
+      "languages": [
+        "pl",
+        "en"
+      ],
+      "network": false,
+      "translationWanted": [],
+      "path": "apps/morse"
+    },
+    {
+      "id": "royal-game-of-ur",
+      "name": "Royal Game of Ur",
+      "description": "The 4,600-year-old Mesopotamian race game, playable against an AI opponent. Irving Finkel's reconstruction: 7 pieces, binary dice, rosettes and captures.",
+      "author": "borzast",
+      "version": "1.0",
+      "tags": [
+        "game",
+        "history",
+        "board-game"
+      ],
+      "languages": [
+        "pl",
+        "en"
+      ],
+      "network": false,
+      "translationWanted": [],
+      "path": "apps/royal-game-of-ur"
+    }
+  ]
+}

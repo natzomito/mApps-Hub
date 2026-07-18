@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>mApps Hub</title>
+
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="mApps">
+<meta name="theme-color" content="#0F1311">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+
+<style>
+/* ============================================================
+   mApps Hub — paleta "Las nocą / Miód"
+   tło #0F1311 · powierzchnia #181E1A · kora #29322C
+   kreda #EDF1EC · mgła #939D94 · miód #E8A93D
+   ============================================================ */
+:root{
+  --bg:#0F1311;
+  --surface:#181E1A;
+  --surface-2:#1F2621;
+  --line:#29322C;
+  --text:#EDF1EC;
+  --muted:#939D94;
+  --honey:#E8A93D;
+  --honey-deep:#C97F26;
+  --danger:#E06C55;
+  --radius:18px;
+  --icon-size:64px;
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea{font:inherit;-webkit-user-select:text;user-select:text}
+
+/* ---------- Szkielet ---------- */
+#app{
+  max-width:560px;margin:0 auto;
+  padding:calc(var(--safe-top) + 18px) 20px calc(var(--safe-bottom) + 110px);
+  min-height:100%;
+}
+
+/* ---------- Nagłówek ---------- */
+header.top{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:18px;
+}
+.wordmark{font-size:26px;letter-spacing:-.02em;font-weight:300}
+.wordmark b{font-weight:800}
+.wordmark .dot{color:var(--honey)}
+.top-actions{display:flex;gap:6px}
+.icon-btn{
+  width:38px;height:38px;border-radius:12px;
+  display:grid;place-items:center;color:var(--muted);
+  transition:background .15s;
+}
+.icon-btn:active{background:var(--surface)}
+.icon-btn svg{width:20px;height:20px}
+
+/* ---------- Szukaj ---------- */
+.search{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:14px;padding:11px 14px;margin-bottom:26px;
+}
+.search svg{width:17px;height:17px;color:var(--muted);flex:none}
+.search input{
+  flex:1;background:none;border:none;outline:none;color:var(--text);font-size:16px;
+}
+.search input::placeholder{color:var(--muted)}
+
+/* ---------- Sekcje ---------- */
+.section{margin-bottom:30px}
+.section-label{
+  font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label .count{
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size:11px;color:var(--honey);font-weight:500;letter-spacing:0;
+}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill, minmax(76px, 1fr));
+  gap:18px 10px;
+}
+
+/* ---------- Kafelek aplikacji ---------- */
+.tile{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  animation:tileIn .3s ease both;
+}
+@keyframes tileIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.tile .icon{
+  width:var(--icon-size);height:var(--icon-size);
+  border-radius:16px;
+  display:grid;place-items:center;
+  font-size:26px;font-weight:700;color:rgba(255,255,255,.92);
+  background-size:cover;background-position:center;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 4px 14px rgba(0,0,0,.35);
+  transition:transform .12s ease;
+  position:relative;overflow:hidden;
+}
+.tile:active .icon{transform:scale(.9)}
+.tile .icon .pin{
+  position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;
+  background:var(--honey);box-shadow:0 0 0 2px rgba(15,19,17,.55);
+}
+.tile .name{
+  font-size:12px;color:var(--text);max-width:80px;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tile.dim{opacity:.45}
+
+/* ---------- Pusty stan ---------- */
+.empty{
+  border:1px dashed var(--line);border-radius:var(--radius);
+  padding:38px 24px;text-align:center;color:var(--muted);
+  font-size:14px;line-height:1.55;
+}
+.empty b{color:var(--text);font-weight:600;display:block;margin-bottom:6px;font-size:15px}
+.empty .hex{font-size:26px;margin-bottom:10px;color:var(--honey)}
+
+/* ---------- Ukryte (zwijane) ---------- */
+.collapse-toggle{
+  width:100%;display:flex;align-items:center;gap:8px;
+  color:var(--muted);font-size:13px;padding:8px 0;
+}
+.collapse-toggle svg{width:14px;height:14px;transition:transform .2s}
+.collapse-toggle.open svg{transform:rotate(90deg)}
+.hidden-grid{display:none;margin-top:12px}
+.hidden-grid.open{display:grid}
+
+/* ---------- FAB ---------- */
+.fab{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--safe-bottom) + 24px);
+  width:58px;height:58px;border-radius:20px;
+  background:linear-gradient(140deg, var(--honey), var(--honey-deep));
+  color:#1A1408;display:grid;place-items:center;
+  box-shadow:0 8px 24px rgba(232,169,61,.35);
+  transition:transform .12s;
+  z-index:40;
+}
+.fab:active{transform:translateX(-50%) scale(.92)}
+.fab svg{width:26px;height:26px}
+
+/* ---------- Arkusze (bottom sheets) ---------- */
+.scrim{
+  position:fixed;inset:0;background:rgba(5,8,6,.6);
+  opacity:0;pointer-events:none;transition:opacity .22s;z-index:60;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  background:var(--surface);
+  border-radius:22px 22px 0 0;
+  border-top:1px solid var(--line);
+  padding:14px 20px calc(var(--safe-bottom) + 22px);
+  transform:translateY(105%);transition:transform .26s cubic-bezier(.32,.72,.25,1);
+  max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  max-width:560px;margin:0 auto;
+}
+.sheet.show{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 16px}
+.sheet h2{font-size:18px;font-weight:700;margin-bottom:18px;letter-spacing:-.01em}
+
+/* pola formularza */
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:12px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+}
+.field input[type=text], .field textarea{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;color:var(--text);outline:none;font-size:16px;
+}
+.field input[type=text]:focus, .field textarea:focus{border-color:var(--honey)}
+.field textarea{
+  min-height:120px;resize:vertical;
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:13px;line-height:1.5;
+}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* wybór źródła kodu */
+.seg{
+  display:flex;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:12px;padding:3px;margin-bottom:14px;
+}
+.seg button{
+  flex:1;padding:9px 0;border-radius:9px;font-size:14px;color:var(--muted);font-weight:500;
+}
+.seg button.on{background:var(--bg);color:var(--text);font-weight:600}
+
+/* wybór ikony */
+.icon-pick{display:flex;align-items:center;gap:14px}
+.icon-preview{
+  width:58px;height:58px;border-radius:15px;flex:none;
+  display:grid;place-items:center;font-size:24px;font-weight:700;color:rgba(255,255,255,.92);
+  background-size:cover;background-position:center;border:1px solid var(--line);
+}
+.btn-secondary{
+  background:var(--surface-2);border:1px solid var(--line);
+  border-radius:12px;padding:10px 16px;font-size:14px;font-weight:500;color:var(--text);
+}
+.btn-secondary:active{background:var(--line)}
+.btn-primary{
+  width:100%;padding:15px;border-radius:14px;font-size:16px;font-weight:700;
+  background:linear-gradient(140deg, var(--honey), var(--honey-deep));color:#1A1408;
+  margin-top:6px;
+}
+.btn-primary:active{opacity:.85}
+.btn-primary:disabled{opacity:.4}
+.file-name{font-size:13px;color:var(--honey);margin-top:8px;word-break:break-all}
+
+/* przełącznik */
+.switch-row{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;
+}
+.switch-row .sw-text{font-size:15px}
+.switch-row .sw-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+.switch{
+  position:relative;width:50px;height:30px;border-radius:15px;flex:none;
+  background:var(--line);transition:background .2s;
+}
+.switch.on{background:var(--honey)}
+.switch::after{
+  content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.switch.on::after{left:23px}
+.net-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;color:var(--muted);
+}
+.net-badge svg{width:12px;height:12px}
+
+/* action sheet aplikacji */
+.action-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.action-head .icon-preview{width:48px;height:48px;font-size:20px}
+.action-head .t{font-size:17px;font-weight:700}
+.action-head .s{font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-top:2px}
+.action-list{display:flex;flex-direction:column}
+.action-list button{
+  display:flex;align-items:center;gap:14px;padding:14px 4px;
+  font-size:16px;text-align:left;border-bottom:1px solid var(--line);
+}
+.action-list button:last-child{border-bottom:none}
+.action-list button svg{width:20px;height:20px;color:var(--muted);flex:none}
+.action-list button.danger{color:var(--danger)}
+.action-list button.danger svg{color:var(--danger)}
+.action-list button:active{background:var(--surface-2);border-radius:10px}
+
+/* ustawienia */
+.settings-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 0;border-bottom:1px solid var(--line);font-size:15px;
+}
+.settings-row:last-of-type{border-bottom:none}
+.settings-row .sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+.badge{
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--honey);
+  background:rgba(232,169,61,.1);padding:3px 8px;border-radius:6px;
+}
+
+/* ---------- Uruchomiona aplikacja ---------- */
+#runner{
+  position:fixed;inset:0;z-index:100;background:var(--bg);
+  display:none;flex-direction:column;
+  animation:runIn .28s cubic-bezier(.32,.72,.25,1);
+}
+#runner.show{display:flex}
+@keyframes runIn{from{transform:scale(.94);opacity:0;border-radius:28px}to{transform:scale(1);opacity:1;border-radius:0}}
+.runner-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:calc(var(--safe-top) + 8px) 12px 8px;
+  background:rgba(15,19,17,.86);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.runner-bar .back{
+  display:flex;align-items:center;gap:4px;color:var(--honey);
+  font-size:15px;font-weight:600;padding:6px 8px;border-radius:10px;
+}
+.runner-bar .back svg{width:18px;height:18px}
+.runner-bar .title{
+  flex:1;text-align:center;font-size:14px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin:0 8px;
+}
+#appframe{flex:1;border:none;width:100%;background:#fff}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
+  bottom:calc(var(--safe-bottom) + 100px);
+  background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+  padding:11px 18px;border-radius:12px;font-size:14px;
+  opacity:0;transition:all .25s;z-index:200;pointer-events:none;
+  max-width:85vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top">
+    <div class="wordmark">m<b>Apps</b> Hub<span class="dot">.</span></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btnSettings" aria-label="Ustawienia">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" id="searchInput" data-i18n-ph="search_ph" placeholder="Szukaj aplikacji" autocomplete="off">
+  </div>
+
+  <div class="section" id="pinnedSection" style="display:none">
+    <div class="section-label"><span data-i18n="pinned">Przypięte</span> <span class="count" id="pinnedCount"></span></div>
+    <div class="grid" id="pinnedGrid"></div>
+  </div>
+
+  <div class="section" id="librarySection">
+    <div class="section-label"><span data-i18n="library">Biblioteka</span> <span class="count" id="libraryCount"></span></div>
+    <div class="grid" id="libraryGrid"></div>
+    <div class="empty" id="emptyState" style="display:none">
+      <div class="hex">⬡</div>
+      <b data-i18n="empty_title">Pusto tutaj</b>
+      <span data-i18n-html="empty_body">Dotknij <span style="color:var(--honey)">+</span> i dodaj pierwszą mini-aplikację —<br>wklej kod HTML albo wybierz plik z telefonu.</span>
+    </div>
+  </div>
+
+  <div class="section" id="hiddenSection" style="display:none">
+    <button class="collapse-toggle" id="hiddenToggle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      <span data-i18n="hidden">Ukryte</span> <span class="count" id="hiddenCount"></span>
+    </button>
+    <div class="grid hidden-grid" id="hiddenGrid"></div>
+  </div>
+</div>
+
+<button class="fab" id="btnAdd" aria-label="Dodaj aplikację">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- Scrim -->
+<div class="scrim" id="scrim"></div>
+
+<!-- Arkusz: dodawanie / edycja -->
+<div class="sheet" id="addSheet">
+  <div class="grab"></div>
+  <h2 id="addTitle">Nowa aplikacja</h2>
+
+  <div class="field">
+    <label for="fName" data-i18n="name">Nazwa</label>
+    <input type="text" id="fName" data-i18n-ph="name_ph" placeholder="np. Kalkulator BUD" maxlength="40">
+  </div>
+
+  <div class="field">
+    <label data-i18n="icon">Ikona</label>
+    <div class="icon-pick">
+      <div class="icon-preview" id="iconPreview">?</div>
+      <div>
+        <button class="btn-secondary" id="btnPickIcon" data-i18n="pick_gallery">Wybierz z galerii</button>
+        <button class="btn-secondary" id="btnClearIcon" data-i18n="remove" style="display:none;margin-left:6px">Usuń</button>
+      </div>
+    </div>
+    <div class="hint" data-i18n="icon_hint">Bez własnej ikony hub wygeneruje kafelek z pierwszej litery nazwy.</div>
+  </div>
+
+  <div class="field">
+    <label data-i18n="app_code">Kod aplikacji</label>
+    <div class="seg">
+      <button id="segPaste" class="on" data-i18n="paste_code">Wklej kod</button>
+      <button id="segFile" data-i18n="file_phone">Plik z telefonu</button>
+    </div>
+    <div id="pastePane">
+      <textarea id="fCode" placeholder="&lt;!DOCTYPE html&gt; …" spellcheck="false"></textarea>
+    </div>
+    <div id="filePane" style="display:none">
+      <button class="btn-secondary" id="btnPickFile" data-i18n="pick_file">Wybierz plik .html</button>
+      <div class="file-name" id="fileName"></div>
+    </div>
+    <div class="hint" id="codeHint">Przy edycji możesz zostawić puste — kod zostanie bez zmian.</div>
+  </div>
+
+  <div class="field">
+    <label data-i18n="security">Bezpieczeństwo</label>
+    <div class="switch-row" id="netRow">
+      <div>
+        <div class="sw-text" data-i18n="net_access">Dostęp do internetu</div>
+        <div class="sw-sub" id="netSub">Zablokowany — apka nie może niczego wysłać ani pobrać z sieci.</div>
+      </div>
+      <div class="switch" id="netSwitch"></div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btnSave">Dodaj aplikację</button>
+</div>
+
+<!-- Arkusz: akcje aplikacji -->
+<div class="sheet" id="actionSheet">
+  <div class="grab"></div>
+  <div class="action-head">
+    <div class="icon-preview" id="asIcon"></div>
+    <div>
+      <div class="t" id="asName"></div>
+      <div class="s" id="asMeta"></div>
+    </div>
+  </div>
+  <div class="action-list">
+    <button id="asOpen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
+      <span data-i18n="open">Otwórz</span>
+    </button>
+    <button id="asPin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 3h6l1 7 2 2H6l2-2 1-7z"/></svg>
+      <span id="asPinLabel">Przypnij</span>
+    </button>
+    <button id="asHide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.53 13.53 0 0 0 2 12s3 8 10 8a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"/></svg>
+      <span id="asHideLabel">Ukryj</span>
+    </button>
+    <button id="asNet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+      <span id="asNetLabel">Zezwól na internet</span>
+    </button>
+    <button id="asEdit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      <span data-i18n="edit">Edytuj</span>
+    </button>
+    <button id="asExport">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <span data-i18n="export_html">Pobierz plik HTML</span>
+    </button>
+    <button id="asDelete" class="danger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      <span data-i18n="delete">Usuń</span>
+    </button>
+  </div>
+</div>
+
+<!-- Arkusz: ustawienia -->
+<div class="sheet" id="settingsSheet">
+  <div class="grab"></div>
+  <h2 data-i18n="settings">Ustawienia</h2>
+  <div class="settings-row">
+    <div><span data-i18n="language">Język</span></div>
+    <select id="langSel" style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;-webkit-appearance:none;appearance:none">
+      <option value="pl">Polski</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+  <div class="settings-row">
+    <div>
+      <span data-i18n="backup">Kopia zapasowa</span>
+      <div class="sub" data-i18n="backup_sub">Wszystkie aplikacje i ikony w jednym pliku JSON.</div>
+    </div>
+    <button class="btn-secondary" id="btnBackup" data-i18n="save">Zapisz</button>
+  </div>
+  <div class="settings-row">
+    <div>
+      <span data-i18n="restore">Przywróć z kopii</span>
+      <div class="sub" data-i18n="restore_sub">Aplikacje z pliku zostaną dopisane do biblioteki.</div>
+    </div>
+    <button class="btn-secondary" id="btnRestore" data-i18n="load">Wczytaj</button>
+  </div>
+  <div class="settings-row">
+    <div>
+      <span data-i18n="persist">Trwałość danych</span>
+      <div class="sub" data-i18n="persist_sub">Zabezpieczenie przed czyszczeniem pamięci przez system.</div>
+    </div>
+    <span class="badge" id="persistBadge">…</span>
+  </div>
+  <div class="settings-row">
+    <div>
+      mApps Hub
+      <div class="sub" data-i18n="about_sub">Wszystko zostaje na tym urządzeniu. Bez kont, bez chmury.</div>
+    </div>
+    <span class="badge">v1.0</span>
+  </div>
+</div>
+
+<!-- Uruchomiona aplikacja -->
+<div id="runner">
+  <div class="runner-bar">
+    <button class="back" id="btnClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg>
+      Hub
+    </button>
+    <div class="title" id="runnerTitle"></div>
+    <span class="net-badge" id="runnerNet" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      offline
+    </span>
+  </div>
+  <iframe id="appframe" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads allow-popups"></iframe>
+</div>
+
+<div id="toast"></div>
+
+<!-- ukryte inputy plików -->
+<input type="file" id="inpIcon" accept="image/*" style="display:none">
+<input type="file" id="inpHtml" accept=".html,.htm,text/html" style="display:none">
+<input type="file" id="inpBackup" accept=".json,application/json" style="display:none">
+
+<script>
+"use strict";
+/* ============================================================
+   IndexedDB
+   ============================================================ */
+const DB_NAME = "mappshub", STORE = "apps";
+let db;
+
+function openDB(){
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const d = req.result;
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: "id" });
+    };
+    req.onsuccess = () => { db = req.result; res(); };
+    req.onerror = () => rej(req.error);
+  });
+}
+function tx(mode){ return db.transaction(STORE, mode).objectStore(STORE); }
+function dbAll(){ return new Promise((res, rej) => { const r = tx("readonly").getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+function dbPut(app){ return new Promise((res, rej) => { const r = tx("readwrite").put(app); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+function dbDel(id){ return new Promise((res, rej) => { const r = tx("readwrite").delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+
+/* ============================================================
+   Stan
+   ============================================================ */
+let apps = [];
+let editingId = null;      // null = dodawanie, id = edycja
+let selectedApp = null;    // aplikacja w action sheet
+let pendingIcon = undefined; // undefined = bez zmian, null = usuń, string = nowy dataURL
+let pendingCode = null;
+let pendingNet = false;
+let codeSource = "paste";
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   Języki
+   ============================================================ */
+const LKEY = "mapps:lang";
+const T = {
+  pl: {
+    search_ph:"Szukaj aplikacji", pinned:"Przypięte", library:"Biblioteka", hidden:"Ukryte",
+    empty_title:"Pusto tutaj",
+    empty_body:'Dotknij <span style="color:var(--honey)">+</span> i dodaj pierwszą mini-aplikację —<br>wklej kod HTML albo wybierz plik z telefonu.',
+    new_app:"Nowa aplikacja", edit_app:"Edytuj aplikację",
+    name:"Nazwa", name_ph:"np. Kalkulator BUD", icon:"Ikona",
+    pick_gallery:"Wybierz z galerii", remove:"Usuń",
+    icon_hint:"Bez własnej ikony hub wygeneruje kafelek z pierwszej litery nazwy.",
+    app_code:"Kod aplikacji", paste_code:"Wklej kod", file_phone:"Plik z telefonu", pick_file:"Wybierz plik .html",
+    code_hint_new:"Wklej cały plik HTML — ze <style> i <script> w środku.",
+    code_hint_edit:"Zostaw puste, żeby zachować obecny kod.",
+    security:"Bezpieczeństwo", net_access:"Dostęp do internetu",
+    net_off:"Zablokowany — apka nie może niczego wysłać ani pobrać z sieci.",
+    net_on:"Dozwolony — apka może łączyć się z siecią. Włączaj tylko dla zaufanego kodu.",
+    add_app:"Dodaj aplikację", save_changes:"Zapisz zmiany",
+    open:"Otwórz", pin:"Przypnij", unpin:"Odepnij", hide:"Ukryj", show:"Pokaż",
+    net_allow:"Zezwól na internet", net_block:"Zablokuj internet",
+    edit:"Edytuj", export_html:"Pobierz plik HTML", delete:"Usuń",
+    settings:"Ustawienia", language:"Język",
+    backup:"Kopia zapasowa", backup_sub:"Wszystkie aplikacje i ikony w jednym pliku JSON.", save:"Zapisz",
+    restore:"Przywróć z kopii", restore_sub:"Aplikacje z pliku zostaną dopisane do biblioteki.", load:"Wczytaj",
+    persist:"Trwałość danych", persist_sub:"Zabezpieczenie przed czyszczeniem pamięci przez system.",
+    about_sub:"Wszystko zostaje na tym urządzeniu. Bez kont, bez chmury.",
+    persist_on:"aktywna", persist_std:"standardowa", persist_na:"n/d",
+    meta_net:"internet", meta_off:"offline", meta_last:"ostatnio ",
+    t_name:"Podaj nazwę aplikacji", t_img:"Nie udało się wczytać obrazka",
+    t_saved:"Zapisano zmiany", t_code:"Wklej kod albo wybierz plik", t_added:"Dodano: ", t_deleted:"Usunięto",
+    t_net_on:"Internet dozwolony", t_net_off:"Internet zablokowany",
+    t_restored:"Przywrócono aplikacje: ", t_bad_backup:"To nie jest kopia zapasowa mApps Hub",
+    c_delete: n => `Usunąć „${n}”? Tej operacji nie można cofnąć.`,
+    c_net: n => `Zezwolić „${n}” na dostęp do internetu? Apka będzie mogła wysyłać i pobierać dane z sieci. Rób to tylko dla kodu, któremu ufasz.`
+  },
+  en: {
+    search_ph:"Search apps", pinned:"Pinned", library:"Library", hidden:"Hidden",
+    empty_title:"Nothing here yet",
+    empty_body:'Tap <span style="color:var(--honey)">+</span> to add your first mini-app —<br>paste HTML code or pick a file from your phone.',
+    new_app:"New app", edit_app:"Edit app",
+    name:"Name", name_ph:"e.g. Unit converter", icon:"Icon",
+    pick_gallery:"Choose from gallery", remove:"Remove",
+    icon_hint:"Without a custom icon the hub generates a tile from the first letter of the name.",
+    app_code:"App code", paste_code:"Paste code", file_phone:"File from phone", pick_file:"Choose .html file",
+    code_hint_new:"Paste the whole HTML file — with <style> and <script> inside.",
+    code_hint_edit:"Leave empty to keep the current code.",
+    security:"Security", net_access:"Internet access",
+    net_off:"Blocked — the app can't send or fetch anything from the network.",
+    net_on:"Allowed — the app can reach the network. Enable only for trusted code.",
+    add_app:"Add app", save_changes:"Save changes",
+    open:"Open", pin:"Pin", unpin:"Unpin", hide:"Hide", show:"Show",
+    net_allow:"Allow internet", net_block:"Block internet",
+    edit:"Edit", export_html:"Download HTML file", delete:"Delete",
+    settings:"Settings", language:"Language",
+    backup:"Backup", backup_sub:"All apps and icons in a single JSON file.", save:"Save",
+    restore:"Restore from backup", restore_sub:"Apps from the file will be added to your library.", load:"Load",
+    persist:"Data persistence", persist_sub:"Protection against system storage cleanup.",
+    about_sub:"Everything stays on this device. No accounts, no cloud.",
+    persist_on:"active", persist_std:"standard", persist_na:"n/a",
+    meta_net:"internet", meta_off:"offline", meta_last:"last used ",
+    t_name:"Enter an app name", t_img:"Couldn't load the image",
+    t_saved:"Changes saved", t_code:"Paste code or choose a file", t_added:"Added: ", t_deleted:"Deleted",
+    t_net_on:"Internet allowed", t_net_off:"Internet blocked",
+    t_restored:"Apps restored: ", t_bad_backup:"This isn't a mApps Hub backup",
+    c_delete: n => `Delete “${n}”? This can't be undone.`,
+    c_net: n => `Allow “${n}” to access the internet? The app will be able to send and fetch data. Do this only for code you trust.`
+  }
+};
+let L = (function(){
+  try { const s = localStorage.getItem(LKEY); if (s === "pl" || s === "en") return s; } catch {}
+  return (navigator.language || "en").toLowerCase().startsWith("pl") ? "pl" : "en";
+})();
+function t(k){ return T[L][k] !== undefined ? T[L][k] : T.pl[k]; }
+function applyI18n(){
+  document.documentElement.lang = L;
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll("[data-i18n-html]").forEach(el => el.innerHTML = t(el.dataset.i18nHtml));
+}
+
+/* ============================================================
+   Blokada sieci — Content Security Policy wstrzykiwana przy starcie.
+   Apka bez zgody na internet nie może wykonać ŻADNEGO połączenia:
+   fetch/XHR/WebSocket, zewnętrzne skrypty, obrazki, fonty, formularze.
+   To gwarancja przeglądarki, nie heurystyka.
+   ============================================================ */
+const CSP_OFFLINE = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' \'unsafe-eval\'; style-src \'unsafe-inline\'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src \'none\'; form-action \'none\'; base-uri \'none\'">';
+function withCSP(html){
+  const m = html.match(/<head[^>]*>/i);
+  if (m) return html.slice(0, m.index + m[0].length) + CSP_OFFLINE + html.slice(m.index + m[0].length);
+  return CSP_OFFLINE + html;
+}
+
+/* ============================================================
+   Ikony generatywne — deterministyczny duotone z nazwy
+   ============================================================ */
+function hashStr(s){
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function autoIconStyle(name){
+  const h = hashStr(name || "?");
+  // rodziny palety: zielenie lasu i miody — na przemian, wg hasha
+  const families = [
+    [95, 150],   // zieleń
+    [150, 180],  // morska zieleń
+    [36, 46],    // miód
+    [18, 30]     // bursztyn
+  ];
+  const fam = families[h % families.length];
+  const hue = fam[0] + (h >> 4) % (fam[1] - fam[0] + 1);
+  const hue2 = hue - 14;
+  return `background:linear-gradient(140deg, hsl(${hue} 38% 42%), hsl(${hue2} 46% 26%))`;
+}
+function iconLetter(name){
+  const t = (name || "?").trim();
+  return t ? t[0].toUpperCase() : "?";
+}
+function applyIcon(el, app){
+  if (app.icon){
+    el.style.cssText = `background-image:url(${app.icon})`;
+    el.textContent = "";
+  } else {
+    el.style.cssText = autoIconStyle(app.name);
+    el.textContent = iconLetter(app.name);
+  }
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function fmtSize(str){
+  const b = new Blob([str]).size;
+  return b < 1024 ? b + " B" : b < 1048576 ? (b/1024).toFixed(1) + " kB" : (b/1048576).toFixed(2) + " MB";
+}
+
+function makeTile(app){
+  const tile = document.createElement("button");
+  tile.className = "tile";
+  if (app.hidden) tile.classList.add("dim");
+
+  const icon = document.createElement("div");
+  icon.className = "icon";
+  applyIcon(icon, app);
+  if (app.pinned && !app.hidden){
+    const pin = document.createElement("span");
+    pin.className = "pin";
+    icon.appendChild(pin);
+  }
+
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = app.name;
+
+  tile.appendChild(icon);
+  tile.appendChild(name);
+
+  // tap = otwórz, długie przytrzymanie = akcje
+  let pressTimer = null, longPressed = false;
+  const start = () => {
+    longPressed = false;
+    pressTimer = setTimeout(() => { longPressed = true; openActionSheet(app); if (navigator.vibrate) navigator.vibrate(10); }, 450);
+  };
+  const cancel = () => clearTimeout(pressTimer);
+  tile.addEventListener("touchstart", start, { passive: true });
+  tile.addEventListener("touchend", cancel);
+  tile.addEventListener("touchmove", cancel, { passive: true });
+  tile.addEventListener("touchcancel", cancel);
+  tile.addEventListener("contextmenu", e => { e.preventDefault(); openActionSheet(app); });
+  tile.addEventListener("click", () => { if (!longPressed) launch(app); });
+
+  return tile;
+}
+
+function render(){
+  const q = $("searchInput").value.trim().toLowerCase();
+  const match = a => !q || a.name.toLowerCase().includes(q);
+
+  const pinned  = apps.filter(a => a.pinned && !a.hidden && match(a)).sort(byName);
+  const library = apps.filter(a => !a.pinned && !a.hidden && match(a)).sort(byName);
+  const hidden  = apps.filter(a => a.hidden && match(a)).sort(byName);
+
+  fillGrid("pinnedGrid", pinned);
+  fillGrid("libraryGrid", library);
+  fillGrid("hiddenGrid", hidden);
+
+  $("pinnedSection").style.display = pinned.length ? "" : "none";
+  $("hiddenSection").style.display = hidden.length ? "" : "none";
+  $("emptyState").style.display = apps.length ? "none" : "";
+  $("librarySection").style.display = (apps.length && !library.length && (pinned.length || hidden.length)) ? "none" : "";
+
+  $("pinnedCount").textContent = pinned.length || "";
+  $("libraryCount").textContent = library.length || "";
+  $("hiddenCount").textContent = hidden.length ? `(${hidden.length})` : "";
+}
+function byName(a, b){ return a.name.localeCompare(b.name, "pl"); }
+function fillGrid(id, list){
+  const g = $(id);
+  g.textContent = "";
+  list.forEach(a => g.appendChild(makeTile(a)));
+}
+
+/* ============================================================
+   Arkusze
+   ============================================================ */
+const sheets = ["addSheet", "actionSheet", "settingsSheet"];
+function openSheet(id){
+  closeSheets(false);
+  $("scrim").classList.add("show");
+  $(id).classList.add("show");
+}
+function closeSheets(hideScrim = true){
+  sheets.forEach(s => $(s).classList.remove("show"));
+  if (hideScrim) $("scrim").classList.remove("show");
+}
+$("scrim").addEventListener("click", () => closeSheets());
+
+/* ============================================================
+   Dodawanie / edycja
+   ============================================================ */
+function resetForm(){
+  editingId = null;
+  pendingIcon = undefined;
+  pendingCode = null;
+  pendingNet = false;
+  codeSource = "paste";
+  $("fName").value = "";
+  $("fCode").value = "";
+  $("fileName").textContent = "";
+  $("segPaste").classList.add("on");
+  $("segFile").classList.remove("on");
+  $("pastePane").style.display = "";
+  $("filePane").style.display = "none";
+  $("btnClearIcon").style.display = "none";
+  updateNetSwitch();
+  updateIconPreview();
+}
+function updateNetSwitch(){
+  $("netSwitch").classList.toggle("on", pendingNet);
+  $("netSub").textContent = pendingNet ? t("net_on") : t("net_off");
+}
+function updateIconPreview(){
+  const prev = $("iconPreview");
+  const name = $("fName").value || "?";
+  const base = editingId ? apps.find(a => a.id === editingId) : null;
+  const icon = pendingIcon !== undefined ? pendingIcon : (base ? base.icon : null);
+  applyIcon(prev, { name, icon });
+  $("btnClearIcon").style.display = icon ? "" : "none";
+}
+
+$("btnAdd").addEventListener("click", () => {
+  resetForm();
+  $("addTitle").textContent = t("new_app");
+  $("btnSave").textContent = t("add_app");
+  $("codeHint").textContent = t("code_hint_new");
+  openSheet("addSheet");
+});
+
+$("fName").addEventListener("input", updateIconPreview);
+$("netSwitch").addEventListener("click", () => { pendingNet = !pendingNet; updateNetSwitch(); });
+
+$("segPaste").addEventListener("click", () => {
+  codeSource = "paste";
+  $("segPaste").classList.add("on"); $("segFile").classList.remove("on");
+  $("pastePane").style.display = ""; $("filePane").style.display = "none";
+});
+$("segFile").addEventListener("click", () => {
+  codeSource = "file";
+  $("segFile").classList.add("on"); $("segPaste").classList.remove("on");
+  $("filePane").style.display = ""; $("pastePane").style.display = "none";
+});
+
+$("btnPickFile").addEventListener("click", () => $("inpHtml").click());
+$("inpHtml").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  pendingCode = await f.text();
+  $("fileName").textContent = `${f.name} · ${fmtSize(pendingCode)}`;
+  if (!$("fName").value){
+    const m = pendingCode.match(/<title[^>]*>([^<]+)<\/title>/i);
+    $("fName").value = m ? m[1].trim().slice(0, 40) : f.name.replace(/\.html?$/i, "");
+    updateIconPreview();
+  }
+  e.target.value = "";
+});
+
+/* ikona z galerii — skalowanie do 256 px, crop do kwadratu */
+$("btnPickIcon").addEventListener("click", () => $("inpIcon").click());
+$("inpIcon").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  const url = URL.createObjectURL(f);
+  img.onload = () => {
+    const S = 256;
+    const c = document.createElement("canvas");
+    c.width = S; c.height = S;
+    const ctx = c.getContext("2d");
+    const side = Math.min(img.width, img.height);
+    const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, S, S);
+    pendingIcon = c.toDataURL("image/jpeg", 0.85);
+    URL.revokeObjectURL(url);
+    updateIconPreview();
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); toast(t("t_img")); };
+  img.src = url;
+  e.target.value = "";
+});
+$("btnClearIcon").addEventListener("click", () => { pendingIcon = null; updateIconPreview(); });
+
+$("btnSave").addEventListener("click", async () => {
+  const name = $("fName").value.trim();
+  if (!name){ toast(t("t_name")); return; }
+
+  let code = codeSource === "paste" ? $("fCode").value : pendingCode;
+  if (code != null && !code.trim()) code = null;
+
+  if (editingId){
+    const app = apps.find(a => a.id === editingId);
+    app.name = name;
+    if (pendingIcon !== undefined) app.icon = pendingIcon;
+    if (code) app.html = code;
+    app.allowNet = pendingNet;
+    app.updated = Date.now();
+    await dbPut(app);
+    toast(t("t_saved"));
+  } else {
+    if (!code){ toast(t("t_code")); return; }
+    const app = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      name,
+      html: code,
+      icon: pendingIcon !== undefined ? pendingIcon : null,
+      pinned: false, hidden: false, allowNet: pendingNet,
+      created: Date.now(), updated: Date.now(), lastUsed: null
+    };
+    apps.push(app);
+    await dbPut(app);
+    toast(t("t_added") + name);
+  }
+  closeSheets();
+  render();
+});
+
+/* ============================================================
+   Action sheet
+   ============================================================ */
+function openActionSheet(app){
+  selectedApp = app;
+  applyIcon($("asIcon"), app);
+  $("asName").textContent = app.name;
+  $("asMeta").textContent = fmtSize(app.html)
+    + " · " + (app.allowNet ? t("meta_net") : t("meta_off"))
+    + (app.lastUsed ? " · " + t("meta_last") + new Date(app.lastUsed).toLocaleDateString(L === "pl" ? "pl-PL" : "en-GB") : "");
+  $("asPinLabel").textContent = app.pinned ? t("unpin") : t("pin");
+  $("asHideLabel").textContent = app.hidden ? t("show") : t("hide");
+  $("asNetLabel").textContent = app.allowNet ? t("net_block") : t("net_allow");
+  openSheet("actionSheet");
+}
+$("asNet").addEventListener("click", async () => {
+  if (!selectedApp.allowNet && !confirm(t("c_net")(selectedApp.name))) return;
+  selectedApp.allowNet = !selectedApp.allowNet;
+  await dbPut(selectedApp);
+  toast(selectedApp.allowNet ? t("t_net_on") : t("t_net_off"));
+  closeSheets(); render();
+});
+$("asOpen").addEventListener("click", () => { closeSheets(); launch(selectedApp); });
+$("asPin").addEventListener("click", async () => {
+  selectedApp.pinned = !selectedApp.pinned;
+  await dbPut(selectedApp);
+  closeSheets(); render();
+});
+$("asHide").addEventListener("click", async () => {
+  selectedApp.hidden = !selectedApp.hidden;
+  await dbPut(selectedApp);
+  closeSheets(); render();
+});
+$("asEdit").addEventListener("click", () => {
+  resetForm();
+  editingId = selectedApp.id;
+  $("fName").value = selectedApp.name;
+  pendingNet = !!selectedApp.allowNet;
+  updateNetSwitch();
+  $("addTitle").textContent = t("edit_app");
+  $("btnSave").textContent = t("save_changes");
+  $("codeHint").textContent = t("code_hint_edit");
+  updateIconPreview();
+  openSheet("addSheet");
+});
+$("asExport").addEventListener("click", () => {
+  downloadFile(selectedApp.name.replace(/[^\w\dąćęłńóśźż -]/gi, "") + ".html", selectedApp.html, "text/html");
+  closeSheets();
+});
+$("asDelete").addEventListener("click", async () => {
+  if (!confirm(t("c_delete")(selectedApp.name))) return;
+  await dbDel(selectedApp.id);
+  apps = apps.filter(a => a.id !== selectedApp.id);
+  closeSheets(); render();
+  toast(t("t_deleted"));
+});
+
+/* ============================================================
+   Uruchamianie
+   ============================================================ */
+async function launch(app){
+  $("runnerTitle").textContent = app.name;
+  $("runnerNet").style.display = app.allowNet ? "none" : "";
+  $("appframe").srcdoc = app.allowNet ? app.html : withCSP(app.html);
+  $("runner").classList.add("show");
+  document.body.style.overflow = "hidden";
+  app.lastUsed = Date.now();
+  await dbPut(app);
+}
+$("btnClose").addEventListener("click", () => {
+  $("runner").classList.remove("show");
+  $("appframe").srcdoc = "";
+  document.body.style.overflow = "";
+  render();
+});
+
+/* ============================================================
+   Ukryte — zwijanie
+   ============================================================ */
+$("hiddenToggle").addEventListener("click", () => {
+  $("hiddenToggle").classList.toggle("open");
+  $("hiddenGrid").classList.toggle("open");
+});
+
+/* ============================================================
+   Szukaj
+   ============================================================ */
+$("searchInput").addEventListener("input", render);
+
+/* ============================================================
+   Ustawienia, kopia zapasowa
+   ============================================================ */
+$("btnSettings").addEventListener("click", async () => {
+  openSheet("settingsSheet");
+  if (navigator.storage && navigator.storage.persisted){
+    const p = await navigator.storage.persisted();
+    $("persistBadge").textContent = p ? t("persist_on") : t("persist_std");
+  } else {
+    $("persistBadge").textContent = t("persist_na");
+  }
+});
+
+$("btnBackup").addEventListener("click", () => {
+  const payload = JSON.stringify({ mapps: 1, exported: new Date().toISOString(), apps }, null, 0);
+  const stamp = new Date().toISOString().slice(0, 10);
+  downloadFile(`mapps-kopia-${stamp}.json`, payload, "application/json");
+});
+
+$("btnRestore").addEventListener("click", () => $("inpBackup").click());
+$("inpBackup").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!(data.mapps || data.minihub) || !Array.isArray(data.apps)) throw new Error("format");
+    let added = 0;
+    for (const a of data.apps){
+      if (!a.name || !a.html) continue;
+      if (apps.some(x => x.id === a.id)) a.id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+      apps.push(a);
+      await dbPut(a);
+      added++;
+    }
+    render();
+    toast(t("t_restored") + added);
+  } catch {
+    toast(t("t_bad_backup"));
+  }
+  e.target.value = "";
+});
+
+/* ============================================================
+   Narzędzia
+   ============================================================ */
+function downloadFile(name, content, type){
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 800);
+}
+let toastTimer;
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ============================================================
+   Start
+   ============================================================ */
+(async function init(){
+  applyI18n();
+  $("langSel").value = L;
+  $("langSel").addEventListener("change", () => {
+    L = $("langSel").value;
+    try { localStorage.setItem(LKEY, L); } catch {}
+    applyI18n(); render();
+  });
+  await openDB();
+  apps = await dbAll();
+  render();
+  // trwałość danych — iOS respektuje to dla apek z ekranu głównego
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  // service worker — tryb offline (działa po wgraniu na hosting)
+  if ("serviceWorker" in navigator && location.protocol === "https:"){
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>

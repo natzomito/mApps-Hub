@@ -1,0 +1,13 @@
+{
+  "name": "mApps Hub",
+  "short_name": "mApps",
+  "description": "Hub na mini-aplikacje HTML — lekkie automatyzacje codziennych zadań",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F1311",
+  "theme_color": "#0F1311",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
