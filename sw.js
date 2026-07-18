@@ -1,5 +1,5 @@
 /* mApps Hub — service worker: launcher działa offline po pierwszym otwarciu */
-const CACHE = "mappshub-v1";
+const CACHE = "mappshub-v2";
 const ASSETS = ["./", "./index.html", "./icon.png", "./manifest.webmanifest"];
 
 self.addEventListener("install", e => {
