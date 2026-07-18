@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Morse</title>
+<style>
+:root{
+  --bg:#0F1311; --surface:#181E1A; --surface-2:#1F2621; --line:#29322C;
+  --text:#EDF1EC; --muted:#939D94; --honey:#E8A93D; --honey-deep:#C97F26;
+  --ok:#7FB37F; --bad:#E06C55;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  padding:calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 20px);
+  max-width:560px;margin:0 auto;font-size:16px;-webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+h1{font-size:24px;font-weight:300;margin-bottom:14px}
+h1 b{font-weight:800}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:3px;margin-bottom:16px}
+.tabs button{flex:1;padding:10px 0;border-radius:10px;font-size:14px;color:var(--muted);font-weight:500}
+.tabs button.on{background:var(--surface-2);color:var(--text);font-weight:600}
+.pane{display:none}
+.pane.on{display:block}
+
+/* alfabet */
+.alpha{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+.alpha button{
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  transition:transform .1s;
+}
+.alpha button:active{transform:scale(.94);border-color:var(--honey)}
+.alpha .ch{font-size:19px;font-weight:700}
+.alpha .code{font-size:13px;color:var(--honey);letter-spacing:2px}
+
+/* nauka */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px}
+.stat-line{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:14px}
+.stat-line b{color:var(--honey);font-weight:600}
+.big-play{
+  width:100%;padding:22px;border-radius:16px;font-size:17px;font-weight:700;
+  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;margin-bottom:14px;
+}
+.big-play:active{opacity:.85}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.choices button{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:13px;
+  padding:16px 0;font-size:21px;font-weight:700;transition:all .12s;
+}
+.choices button:active{transform:scale(.94)}
+.choices button.ok{background:rgba(127,179,127,.18);border-color:var(--ok);color:var(--ok)}
+.choices button.bad{background:rgba(224,108,85,.15);border-color:var(--bad);color:var(--bad)}
+.feedback{min-height:22px;text-align:center;font-size:14px;color:var(--muted);margin-top:12px}
+.feedback .mono{color:var(--honey);letter-spacing:2px}
+
+/* tłumacz */
+textarea{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:13px;
+  padding:13px;color:var(--text);outline:none;font-size:16px;min-height:76px;resize:vertical;
+  -webkit-user-select:text;user-select:text;
+}
+textarea:focus{border-color:var(--honey)}
+.out{
+  background:var(--surface);border:1px solid var(--line);border-radius:13px;
+  padding:14px;margin-top:10px;font-size:17px;letter-spacing:3px;line-height:1.9;
+  color:var(--honey);word-break:break-all;min-height:54px;
+  -webkit-user-select:text;user-select:text;
+}
+.btn{
+  width:100%;padding:13px;border-radius:13px;font-size:15px;font-weight:700;
+  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;margin-top:10px;
+}
+.btn:active{opacity:.85}
+.btn:disabled{opacity:.4}
+
+/* tempo */
+.speed{display:flex;align-items:center;gap:12px;margin-top:16px;font-size:13px;color:var(--muted)}
+.speed input{flex:1;accent-color:var(--honey)}
+.hint{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.55;text-align:center}
+</style>
+</head>
+<body>
+
+<h1>Mor<b>se</b></h1>
+
+<div class="tabs">
+  <button class="on" data-p="pAlpha">Alphabet</button>
+  <button data-p="pTrain">Practice</button>
+  <button data-p="pTrans">Translator</button>
+</div>
+
+<!-- ALFABET -->
+<div class="pane on" id="pAlpha">
+  <div class="alpha" id="alphaGrid"></div>
+  <div class="hint">Tap a character to hear its code.</div>
+</div>
+
+<!-- NAUKA -->
+<div class="pane" id="pTrain">
+  <div class="card">
+    <div class="stat-line">
+      <span>Level: <b id="tLevel">2 chars</b></span>
+      <span>Streak: <b id="tStreak">0</b></span>
+      <span>Accuracy: <b id="tAcc">—</b></span>
+    </div>
+    <button class="big-play" id="btnPlayQ">▶ Play character</button>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback">Koch method: you start with 2 characters at full speed.<br>A new character unlocks at 90% accuracy.</div>
+  </div>
+  <button class="btn" id="btnResetProg" style="background:var(--surface);border:1px solid var(--line);color:var(--muted)">Reset progress</button>
+</div>
+
+<!-- TŁUMACZ -->
+<div class="pane" id="pTrans">
+  <textarea id="inText" placeholder="Type text… e.g. SOS"></textarea>
+  <div class="out mono" id="outMorse">···&nbsp;&nbsp;−−−&nbsp;&nbsp;···</div>
+  <button class="btn" id="btnPlayText">▶ Play as sound</button>
+</div>
+
+<div class="speed">
+  Speed <input type="range" id="wpm" min="8" max="25" value="15"> <span class="mono" id="wpmVal">15 WPM</span>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const KEY = "morse:v1";
+
+/* ---------- kod Morse'a (litery, cyfry, polskie znaki jako baza łacińska) ---------- */
+const MORSE = {
+  A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",
+  K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",
+  U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",
+  "0":"-----","1":".----","2":"..---","3":"...--","4":"....-",
+  "5":".....","6":"-....","7":"--...","8":"---..","9":"----."
+};
+const PL_MAP = {Ą:"A",Ć:"C",Ę:"E",Ł:"L",Ń:"N",Ó:"O",Ś:"S",Ź:"Z",Ż:"Z"};
+const DISP = c => c.replace(/\./g,"·").replace(/-/g,"−");
+
+/* kolejność Kocha (uproszczona, klasyczna sekwencja) */
+const KOCH = "KMRSUAPTLOWI.NJEF0Y,VG5/Q9ZH38B?427C1D6X".split("").filter(c => MORSE[c]);
+
+/* ---------- audio ---------- */
+let ctx = null;
+function ac(){ if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); return ctx; }
+function unit(){ return 1.2 / parseInt($("wpm").value, 10); } // sekundy na kropkę (PARIS)
+function playMorse(code, done){
+  const a = ac();
+  let t = a.currentTime + 0.06;
+  const u = unit();
+  for (const sym of code){
+    if (sym === " "){ t += u * 2; continue; }   // przerwa między znakami (łącznie 3u z poprzednią)
+    if (sym === "/"){ t += u * 4; continue; }   // przerwa między słowami (łącznie 7u)
+    const dur = sym === "." ? u : u * 3;
+    const osc = a.createOscillator(), g = a.createGain();
+    osc.frequency.value = 600; osc.type = "sine";
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.5, t + 0.004);
+    g.gain.setValueAtTime(0.5, t + dur - 0.004);
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    osc.connect(g); g.connect(a.destination);
+    osc.start(t); osc.stop(t + dur);
+    t += dur + u; // przerwa wewnątrz znaku
+  }
+  if (done) setTimeout(done, (t - a.currentTime) * 1000);
+}
+
+/* ---------- zakładki ---------- */
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("on"));
+  document.querySelectorAll(".pane").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); $(b.dataset.p).classList.add("on");
+}));
+
+/* ---------- alfabet ---------- */
+(function buildAlpha(){
+  const g = $("alphaGrid");
+  Object.keys(MORSE).forEach(ch => {
+    const b = document.createElement("button");
+    const c = document.createElement("span"); c.className = "ch"; c.textContent = ch;
+    const k = document.createElement("span"); k.className = "code mono"; k.textContent = DISP(MORSE[ch]);
+    b.appendChild(c); b.appendChild(k);
+    b.addEventListener("click", () => playMorse(MORSE[ch]));
+    g.appendChild(b);
+  });
+})();
+
+/* ---------- nauka (Koch) ---------- */
+let prog = { level: 2, correct: 0, wrong: 0, streak: 0, window: [] };
+try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(KEY)) || {}); } catch {}
+let current = null, answered = true;
+
+function saveProg(){ try { localStorage.setItem(KEY, JSON.stringify(prog)); } catch {} }
+function pool(){ return KOCH.slice(0, prog.level); }
+function acc(){
+  if (!prog.window.length) return null;
+  return Math.round(100 * prog.window.filter(Boolean).length / prog.window.length);
+}
+function refreshStats(){
+  $("tLevel").textContent = prog.level + " chars";
+  $("tStreak").textContent = prog.streak;
+  const a = acc();
+  $("tAcc").textContent = a === null ? "—" : a + "%";
+}
+function newQuestion(){
+  const p = pool();
+  current = p[Math.floor(Math.random() * p.length)];
+  answered = false;
+  // 6 przycisków: poprawny + losowe z całego alfabetu (preferencja: z puli)
+  const opts = new Set([current]);
+  const src = p.length >= 6 ? p : KOCH.slice(0, Math.max(6, p.length));
+  while (opts.size < Math.min(6, src.length)) opts.add(src[Math.floor(Math.random() * src.length)]);
+  const arr = [...opts].sort(() => Math.random() - 0.5);
+  const c = $("choices");
+  c.textContent = "";
+  arr.forEach(ch => {
+    const b = document.createElement("button");
+    b.textContent = ch;
+    b.addEventListener("click", () => answer(b, ch));
+    c.appendChild(b);
+  });
+  $("feedback").textContent = "Listen…";
+  playMorse(MORSE[current]);
+}
+function answer(btn, ch){
+  if (answered) return;
+  answered = true;
+  const good = ch === current;
+  prog.window.push(good);
+  if (prog.window.length > 20) prog.window.shift();
+  if (good){
+    prog.correct++; prog.streak++;
+    btn.classList.add("ok");
+    $("feedback").innerHTML = `Correct! <b>${current}</b> = <span class="mono">${DISP(MORSE[current])}</span>`;
+    const a = acc();
+    if (a !== null && a >= 90 && prog.window.length >= 12 && prog.level < KOCH.length){
+      prog.level++;
+      prog.window = [];
+      $("feedback").innerHTML = `🎉 New character unlocked: <b>${KOCH[prog.level-1]}</b> = <span class="mono">${DISP(MORSE[KOCH[prog.level-1]])}</span>`;
+      playMorse(MORSE[KOCH[prog.level-1]]);
+    }
+  } else {
+    prog.wrong++; prog.streak = 0;
+    btn.classList.add("bad");
+    [...$("choices").children].forEach(b => { if (b.textContent === current) b.classList.add("ok"); });
+    $("feedback").innerHTML = `It was <b>${current}</b> = <span class="mono">${DISP(MORSE[current])}</span>`;
+  }
+  saveProg(); refreshStats();
+  setTimeout(newQuestion, good ? 1100 : 2100);
+}
+$("btnPlayQ").addEventListener("click", () => {
+  if (current && !answered) playMorse(MORSE[current]);
+  else newQuestion();
+});
+$("btnResetProg").addEventListener("click", () => {
+  if (!confirm("Reset your learning progress?")) return;
+  prog = { level: 2, correct: 0, wrong: 0, streak: 0, window: [] };
+  saveProg(); refreshStats();
+  current = null; answered = true;
+  $("choices").textContent = "";
+  $("feedback").textContent = "Progress reset. Tap \u201cPlay character\u201d to begin.";
+});
+
+/* ---------- tłumacz ---------- */
+function toMorse(text){
+  return text.toUpperCase().split("").map(ch => {
+    if (ch === " ") return "/";
+    const base = PL_MAP[ch] || ch;
+    return MORSE[base] || "";
+  }).filter(Boolean).join(" ");
+}
+$("inText").addEventListener("input", () => {
+  const m = toMorse($("inText").value);
+  $("outMorse").textContent = m ? DISP(m).replace(/\//g, " / ") : "";
+});
+$("btnPlayText").addEventListener("click", () => {
+  const m = toMorse($("inText").value || "SOS");
+  if (m) playMorse(m);
+});
+
+/* ---------- tempo ---------- */
+$("wpm").addEventListener("input", () => $("wpmVal").textContent = $("wpm").value + " WPM");
+
+refreshStats();
+</script>
+</body>
+</html>

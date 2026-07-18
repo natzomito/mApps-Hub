@@ -1,0 +1,18 @@
+{
+  "id": "med-schedule",
+  "name": "Med Schedule",
+  "description": "Enter your medications and dosing schedule, get an .ics calendar file with daily reminders. 100% on-device — no data ever leaves your phone.",
+  "author": "borzast",
+  "version": "1.0",
+  "tags": [
+    "health",
+    "calendar",
+    "reminders"
+  ],
+  "languages": [
+    "pl",
+    "en"
+  ],
+  "network": false,
+  "translationWanted": []
+}

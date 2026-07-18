@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Med Schedule</title>
+<style>
+:root{
+  --bg:#0F1311; --surface:#181E1A; --surface-2:#1F2621; --line:#29322C;
+  --text:#EDF1EC; --muted:#939D94; --honey:#E8A93D; --honey-deep:#C97F26;
+  --danger:#E06C55;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  font-size:16px;-webkit-font-smoothing:antialiased;
+  padding:calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 24px);
+  max-width:560px;margin:0 auto;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font:inherit}
+
+h1{font-size:24px;font-weight:300;letter-spacing:-.02em;margin-bottom:4px}
+h1 b{font-weight:800}
+.sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:16px;margin-bottom:14px;
+}
+.card h2{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
+.field input[type=text], .field input[type=date], .field input[type=number], .field select{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;
+  padding:11px 13px;color:var(--text);outline:none;font-size:16px;
+  -webkit-appearance:none;appearance:none;
+}
+.field input:focus, .field select:focus{border-color:var(--honey)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* pory dnia */
+.times{display:flex;flex-wrap:wrap;gap:8px}
+.time-chip{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:11px;
+  padding:7px 8px 7px 12px;
+}
+.time-chip input[type=time]{
+  background:none;border:none;color:var(--text);outline:none;font-size:15px;
+  font-family:ui-monospace,Menlo,monospace;width:78px;
+}
+.time-chip .x{color:var(--muted);font-size:17px;padding:0 4px;line-height:1}
+.chip-add{
+  border:1px dashed var(--line);border-radius:11px;padding:9px 14px;
+  color:var(--honey);font-size:14px;font-weight:500;
+}
+
+.btn{
+  width:100%;padding:14px;border-radius:13px;font-size:16px;font-weight:700;
+  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;
+}
+.btn:active{opacity:.85}
+.btn.ghost{
+  background:var(--surface);border:1px solid var(--line);color:var(--text);font-weight:600;
+}
+.btn.small{width:auto;padding:9px 15px;font-size:14px}
+
+/* lista leków */
+.med{
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;margin-bottom:10px;
+  display:flex;align-items:center;gap:13px;
+}
+.med .pill{
+  width:40px;height:40px;border-radius:12px;flex:none;
+  background:linear-gradient(140deg,var(--honey),var(--honey-deep));
+  display:grid;place-items:center;font-size:19px;
+}
+.med .info{flex:1;min-width:0}
+.med .n{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.med .d{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.med .times-line{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--honey);margin-top:3px}
+.med .del{color:var(--muted);padding:8px;font-size:18px}
+
+.empty{
+  border:1px dashed var(--line);border-radius:16px;padding:26px 18px;text-align:center;
+  color:var(--muted);font-size:13.5px;line-height:1.55;margin-bottom:14px;
+}
+
+.footer-note{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:18px;text-align:center}
+
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(16px);
+  bottom:calc(var(--safe-bottom) + 24px);
+  background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+  padding:10px 16px;border-radius:11px;font-size:14px;opacity:0;transition:all .25s;
+  pointer-events:none;max-width:85vw;text-align:center;z-index:50;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.section-gap{height:10px}
+</style>
+</head>
+<body>
+
+<h1>Med <b>Schedule</b></h1>
+<p class="sub">Enter your medications and schedule to get a calendar file (.ics) with daily reminders. Everything is computed on your phone — nothing leaves the device.</p>
+
+<div class="card">
+  <h2>New medication</h2>
+  <div class="field">
+    <label for="mName">Medication name</label>
+    <input type="text" id="mName" placeholder="e.g. Metformin" maxlength="60">
+  </div>
+  <div class="field">
+    <label for="mDose">Dose</label>
+    <input type="text" id="mDose" placeholder="e.g. 1 tablet 500 mg" maxlength="60">
+  </div>
+  <div class="field">
+    <label>Times of day</label>
+    <div class="times" id="times"></div>
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label for="mInterval">Frequency</label>
+      <select id="mInterval">
+        <option value="1">Every day</option>
+        <option value="2">Every 2 days</option>
+        <option value="3">Every 3 days</option>
+        <option value="7">Every week</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="mDuration">Duration</label>
+      <select id="mDuration">
+        <option value="7">7 days</option>
+        <option value="14">14 days</option>
+        <option value="30" selected>30 days</option>
+        <option value="90">90 days</option>
+        <option value="0">Ongoing</option>
+      </select>
+    </div>
+  </div>
+  <div class="field">
+    <label for="mStart">Start date</label>
+    <input type="date" id="mStart">
+  </div>
+  <button class="btn ghost" id="btnAddMed">Add medication</button>
+</div>
+
+<div id="medList"></div>
+<div class="empty" id="empty">Your list is empty.<br>Add a medication above — you can add several and generate one shared file.</div>
+
+<button class="btn" id="btnICS">Download calendar file (.ics)</button>
+
+<p class="footer-note">After downloading, open the file and choose "Add All" — the events with alerts will appear in your Calendar.<br>Your medication list is saved on this device.</p>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const KEY = "dawkowanie:v1";
+let meds = [];
+
+/* ---------- storage (lokalny, w razie braku dostępu — tylko sesja) ---------- */
+function load(){
+  try { meds = JSON.parse(localStorage.getItem(KEY)) || []; } catch { meds = []; }
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(meds)); } catch {}
+}
+
+/* ---------- pory dnia ---------- */
+function addTimeChip(value){
+  const chip = document.createElement("span");
+  chip.className = "time-chip";
+  const inp = document.createElement("input");
+  inp.type = "time"; inp.value = value || "08:00";
+  const x = document.createElement("button");
+  x.className = "x"; x.textContent = "×"; x.setAttribute("aria-label","Remove time");
+  x.addEventListener("click", () => {
+    if ($("times").querySelectorAll(".time-chip").length > 1) chip.remove();
+  });
+  chip.appendChild(inp); chip.appendChild(x);
+  $("times").insertBefore(chip, $("addTime"));
+}
+function getTimes(){
+  return [...$("times").querySelectorAll("input[type=time]")]
+    .map(i => i.value).filter(Boolean)
+    .sort();
+}
+
+/* ---------- lista leków ---------- */
+function freqLabel(interval){
+  return interval == 1 ? "daily" : interval == 7 ? "weekly" : "every " + interval + " days";
+}
+function durLabel(days){
+  return days == 0 ? "ongoing" : days + " days";
+}
+function render(){
+  const list = $("medList");
+  list.textContent = "";
+  $("empty").style.display = meds.length ? "none" : "";
+  meds.forEach((m, i) => {
+    const el = document.createElement("div");
+    el.className = "med";
+
+    const pill = document.createElement("div");
+    pill.className = "pill"; pill.textContent = "💊";
+
+    const info = document.createElement("div");
+    info.className = "info";
+    const n = document.createElement("div");
+    n.className = "n"; n.textContent = m.name + (m.dose ? " · " + m.dose : "");
+    const d = document.createElement("div");
+    d.className = "d";
+    d.textContent = freqLabel(m.interval) + " · " + durLabel(m.days) + " · from " + m.start;
+    const tl = document.createElement("div");
+    tl.className = "times-line"; tl.textContent = m.times.join("  ");
+    info.appendChild(n); info.appendChild(d); info.appendChild(tl);
+
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label","Remove medication");
+    del.addEventListener("click", () => {
+      meds.splice(i, 1); save(); render();
+    });
+
+    el.appendChild(pill); el.appendChild(info); el.appendChild(del);
+    list.appendChild(el);
+  });
+}
+
+/* ---------- dodawanie ---------- */
+$("btnAddMed").addEventListener("click", () => {
+  const name = $("mName").value.trim();
+  if (!name){ toast("Enter a medication name"); return; }
+  const times = getTimes();
+  if (!times.length){ toast("Add at least one time"); return; }
+  meds.push({
+    name,
+    dose: $("mDose").value.trim(),
+    times,
+    interval: parseInt($("mInterval").value, 10),
+    days: parseInt($("mDuration").value, 10),
+    start: $("mStart").value || todayISO()
+  });
+  save(); render();
+  $("mName").value = ""; $("mDose").value = "";
+  toast("Added: " + name);
+});
+
+/* ---------- iCal ---------- */
+function pad(n){ return String(n).padStart(2, "0"); }
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+}
+function icsEscape(s){
+  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+/* łamanie linii wg RFC 5545 (max 75 bajtów, kontynuacja od spacji) */
+function fold(line){
+  const out = [];
+  let s = line;
+  while (s.length > 73){
+    out.push(s.slice(0, 73));
+    s = " " + s.slice(73);
+  }
+  out.push(s);
+  return out.join("\r\n");
+}
+function buildICS(){
+  const now = new Date();
+  const dtstamp = now.getUTCFullYear() + pad(now.getUTCMonth()+1) + pad(now.getUTCDate())
+    + "T" + pad(now.getUTCHours()) + pad(now.getUTCMinutes()) + pad(now.getUTCSeconds()) + "Z";
+
+  const L = [];
+  L.push("BEGIN:VCALENDAR");
+  L.push("VERSION:2.0");
+  L.push("PRODID:-//mAppsHub//Dawkowanie 1.0//PL");
+  L.push("CALSCALE:GREGORIAN");
+  L.push("METHOD:PUBLISH");
+  L.push(fold("X-WR-CALNAME:Medications"));
+
+  meds.forEach((m, mi) => {
+    const startDate = m.start.replace(/-/g, "");
+    m.times.forEach((t, ti) => {
+      const hhmm = t.replace(":", "");
+      const summary = "💊 " + m.name + (m.dose ? " — " + m.dose : "");
+      let rrule = "RRULE:FREQ=DAILY;INTERVAL=" + m.interval;
+      if (m.days > 0){
+        // COUNT = liczba wystąpień tej pory w całej kuracji
+        const count = Math.ceil(m.days / m.interval);
+        rrule += ";COUNT=" + count;
+      }
+      L.push("BEGIN:VEVENT");
+      L.push("UID:dawkowanie-" + startDate + "-" + mi + "-" + ti + "@mapps.local");
+      L.push("DTSTAMP:" + dtstamp);
+      L.push("DTSTART:" + startDate + "T" + hhmm + "00"); // czas lokalny (floating)
+      L.push("DTEND:"   + startDate + "T" + hhmm + "00");
+      L.push(rrule);
+      L.push(fold("SUMMARY:" + icsEscape(summary)));
+      if (m.dose) L.push(fold("DESCRIPTION:" + icsEscape("Dose: " + m.dose + " · " + freqLabel(m.interval))));
+      L.push("TRANSP:TRANSPARENT");
+      L.push("BEGIN:VALARM");
+      L.push("ACTION:DISPLAY");
+      L.push(fold("DESCRIPTION:" + icsEscape(summary)));
+      L.push("TRIGGER:PT0S");
+      L.push("END:VALARM");
+      L.push("END:VEVENT");
+    });
+  });
+
+  L.push("END:VCALENDAR");
+  return L.join("\r\n") + "\r\n";
+}
+
+$("btnICS").addEventListener("click", () => {
+  if (!meds.length){ toast("Add at least one medication first"); return; }
+  const blob = new Blob([buildICS()], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "medication-schedule.ics";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 800);
+  toast("File ready — open it and add to your Calendar");
+});
+
+/* ---------- toast ---------- */
+let tt;
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+/* ---------- start ---------- */
+(function init(){
+  // przycisk dodawania pory
+  const add = document.createElement("button");
+  add.className = "chip-add"; add.id = "addTime"; add.textContent = "+ time";
+  $("times").appendChild(add);
+  add.addEventListener("click", () => addTimeChip("20:00"));
+  addTimeChip("08:00");
+
+  $("mStart").value = todayISO();
+  load(); render();
+})();
+</script>
+</body>
+</html>

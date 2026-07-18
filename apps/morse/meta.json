@@ -1,0 +1,18 @@
+{
+  "id": "morse",
+  "name": "Morse",
+  "description": "Learn Morse code by ear with the Koch method, browse the alphabet, and translate text to Morse with real audio playback (WebAudio, 8-25 WPM).",
+  "author": "borzast",
+  "version": "1.0",
+  "tags": [
+    "learning",
+    "radio",
+    "audio"
+  ],
+  "languages": [
+    "pl",
+    "en"
+  ],
+  "network": false,
+  "translationWanted": []
+}
