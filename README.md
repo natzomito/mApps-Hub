@@ -1,4 +1,4 @@
-# mApps Hub
+# mApps Hub - 100% vibe coded
 
 **Tiny apps for everyday life. Like Shortcuts or macros — but open, portable, and written by AI in a minute.**
 
