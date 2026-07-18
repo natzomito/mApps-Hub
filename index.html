@@ -74,6 +74,26 @@ header.top{
 }
 .icon-btn:active{background:var(--surface)}
 .icon-btn svg{width:20px;height:20px}
+.icon-btn{position:relative}
+.upd-dot{
+  position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;
+  background:var(--honey);box-shadow:0 0 0 2px var(--bg);display:none;
+}
+.upd-dot.show{display:block}
+
+/* katalog */
+.cat-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.cat-item:last-child{border-bottom:none}
+.cat-info{flex:1;min-width:0}
+.cat-info .t{font-weight:600;font-size:15px}
+.cat-info .d{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+.cat-info .m{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-top:5px}
+.cat-btn{
+  flex:none;padding:9px 14px;border-radius:11px;font-size:13.5px;font-weight:600;
+  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;
+}
+.cat-btn:disabled{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.cat-empty{color:var(--muted);font-size:13.5px;text-align:center;padding:22px 10px;line-height:1.5}
 
 /* ---------- Szukaj ---------- */
 .search{
@@ -341,7 +361,11 @@ header.top{
   <header class="top">
     <div class="wordmark">m<b>Apps</b> Hub<span class="dot">.</span></div>
     <div class="top-actions">
+      <button class="icon-btn" id="btnDiscover" aria-label="Katalog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2z"/></svg>
+      </button>
       <button class="icon-btn" id="btnSettings" aria-label="Ustawienia">
+        <span class="upd-dot" id="updDot"></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
@@ -517,8 +541,24 @@ header.top{
       mApps Hub
       <div class="sub" data-i18n="about_sub">Wszystko zostaje na tym urządzeniu. Bez kont, bez chmury.</div>
     </div>
-    <span class="badge">v1.0</span>
+    <span class="badge" id="verBadge">v?</span>
   </div>
+  <div class="settings-row" id="updRow" style="display:none">
+    <div>
+      <span data-i18n="version">Wersja</span>
+      <div class="sub" data-i18n="version_sub">Aktualizacja podmienia tylko kod launchera. Twoje aplikacje i dane zostają nietknięte.</div>
+    </div>
+    <button class="btn-secondary" id="btnUpdate" style="background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;border:none;font-weight:700">Aktualizuj</button>
+  </div>
+</div>
+
+<!-- Arkusz: katalog -->
+<div class="sheet" id="discoverSheet">
+  <button class="sheet-close" aria-label="Zamknij">✕</button>
+  <div class="grab"></div>
+  <h2 data-i18n="discover">Katalog</h2>
+  <div class="hint" style="margin:-8px 0 14px" data-i18n="d_hint">Aplikacje z publicznego repozytorium mApps-Hub.</div>
+  <div id="catList"><div class="cat-empty" data-i18n="d_loading">Wczytywanie…</div></div>
 </div>
 
 <!-- Uruchomiona aplikacja -->
@@ -584,6 +624,7 @@ const $ = id => document.getElementById(id);
 /* ============================================================
    Języki
    ============================================================ */
+const APP_VERSION = "1.1.0";
 const LKEY = "mapps:lang";
 const T = {
   pl: {
@@ -615,6 +656,12 @@ const T = {
     t_saved:"Zapisano zmiany", t_code:"Wklej kod albo wybierz plik", t_added:"Dodano: ", t_deleted:"Usunięto",
     t_net_on:"Internet dozwolony", t_net_off:"Internet zablokowany",
     t_restored:"Przywrócono aplikacje: ", t_bad_backup:"To nie jest kopia zapasowa mApps Hub",
+    discover:"Katalog", d_hint:"Aplikacje z publicznego repozytorium mApps-Hub.",
+    d_loading:"Wczytywanie…", d_install:"Zainstaluj", d_installed:"Zainstalowana",
+    d_err:"Nie udało się pobrać katalogu — potrzebny internet.",
+    t_installed:"Zainstalowano: ",
+    version:"Wersja", version_sub:"Aktualizacja podmienia tylko kod launchera. Twoje aplikacje i dane zostają nietknięte.",
+    update:"Aktualizuj",
     c_delete: n => `Usunąć „${n}”? Tej operacji nie można cofnąć.`,
     c_net: n => `Zezwolić „${n}” na dostęp do internetu? Apka będzie mogła wysyłać i pobierać dane z sieci. Rób to tylko dla kodu, któremu ufasz.`
   },
@@ -647,6 +694,12 @@ const T = {
     t_saved:"Changes saved", t_code:"Paste code or choose a file", t_added:"Added: ", t_deleted:"Deleted",
     t_net_on:"Internet allowed", t_net_off:"Internet blocked",
     t_restored:"Apps restored: ", t_bad_backup:"This isn't a mApps Hub backup",
+    discover:"Catalog", d_hint:"Apps from the public mApps-Hub repository.",
+    d_loading:"Loading…", d_install:"Install", d_installed:"Installed",
+    d_err:"Couldn't load the catalog — internet required.",
+    t_installed:"Installed: ",
+    version:"Version", version_sub:"Updates replace only the launcher code. Your apps and data stay untouched.",
+    update:"Update",
     c_delete: n => `Delete “${n}”? This can't be undone.`,
     c_net: n => `Allow “${n}” to access the internet? The app will be able to send and fetch data. Do this only for code you trust.`
   }
@@ -789,7 +842,7 @@ function fillGrid(id, list){
 /* ============================================================
    Arkusze
    ============================================================ */
-const sheets = ["addSheet", "actionSheet", "settingsSheet"];
+const sheets = ["addSheet", "actionSheet", "settingsSheet", "discoverSheet"];
 function openSheet(id){
   closeSheets(false);
   $("scrim").classList.add("show");
@@ -1070,6 +1123,121 @@ $("inpBackup").addEventListener("change", async e => {
 });
 
 /* ============================================================
+   Katalog (Discover) — czyta catalog.json z tego samego repo
+   ============================================================ */
+let catalogCache = null;
+
+$("btnDiscover").addEventListener("click", async () => {
+  openSheet("discoverSheet");
+  renderCatalog(null);
+  try {
+    const r = await fetch("catalog.json", { cache: "no-store" });
+    if (!r.ok) throw 0;
+    catalogCache = await r.json();
+    renderCatalog(catalogCache);
+  } catch {
+    $("catList").innerHTML = "";
+    const d = document.createElement("div");
+    d.className = "cat-empty";
+    d.textContent = t("d_err");
+    $("catList").appendChild(d);
+  }
+});
+
+function renderCatalog(cat){
+  const box = $("catList");
+  box.textContent = "";
+  if (!cat){
+    const d = document.createElement("div");
+    d.className = "cat-empty";
+    d.textContent = t("d_loading");
+    box.appendChild(d);
+    return;
+  }
+  (cat.apps || []).forEach(m => {
+    const row = document.createElement("div");
+    row.className = "cat-item";
+
+    const info = document.createElement("div");
+    info.className = "cat-info";
+    const tt = document.createElement("div"); tt.className = "t"; tt.textContent = m.name;
+    const dd = document.createElement("div"); dd.className = "d"; dd.textContent = m.description || "";
+    const mm = document.createElement("div"); mm.className = "m";
+    mm.textContent = (m.languages || []).join(" · ") + (m.network ? " · internet" : " · offline");
+    info.appendChild(tt); info.appendChild(dd); info.appendChild(mm);
+
+    const btn = document.createElement("button");
+    btn.className = "cat-btn";
+    const installed = apps.some(a => a.catalogId === m.id);
+    btn.textContent = installed ? t("d_installed") : t("d_install");
+    btn.disabled = installed;
+    btn.addEventListener("click", () => installFromCatalog(m, btn));
+
+    row.appendChild(info); row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
+
+async function installFromCatalog(m, btn){
+  btn.disabled = true;
+  try {
+    const langs = m.languages || ["en"];
+    const lang = langs.includes(L) ? L : (langs.includes("en") ? "en" : langs[0]);
+    const r = await fetch((m.path || "apps/" + m.id) + "/" + lang + ".html", { cache: "no-store" });
+    if (!r.ok) throw 0;
+    const html = await r.text();
+    const app = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      catalogId: m.id,
+      name: m.name,
+      html,
+      icon: null,
+      pinned: false, hidden: false,
+      allowNet: false, /* zawsze start bez sieci — nawet gdy manifest deklaruje internet, zgoda należy do użytkownika */
+      created: Date.now(), updated: Date.now(), lastUsed: null
+    };
+    apps.push(app);
+    await dbPut(app);
+    btn.textContent = t("d_installed");
+    render();
+    toast(t("t_installed") + m.name);
+  } catch {
+    btn.disabled = false;
+    toast(t("d_err"));
+  }
+}
+
+/* ============================================================
+   Aktualizacje launchera — porównanie z version.json w repo
+   ============================================================ */
+async function checkUpdate(){
+  try {
+    const r = await fetch("version.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const v = (await r.json()).version;
+    if (v && v !== APP_VERSION){
+      $("updDot").classList.add("show");
+      $("updRow").style.display = "";
+      $("btnUpdate").textContent = t("update") + " → v" + v;
+    }
+  } catch {}
+}
+$("btnUpdate").addEventListener("click", async () => {
+  $("btnUpdate").disabled = true;
+  try {
+    if (window.caches){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if (navigator.serviceWorker){
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) await reg.update();
+    }
+  } catch {}
+  location.reload();
+});
+
+/* ============================================================
    Narzędzia
    ============================================================ */
 function downloadFile(name, content, type){
@@ -1101,9 +1269,11 @@ function toast(msg){
     try { localStorage.setItem(LKEY, L); } catch {}
     applyI18n(); render();
   });
+  $("verBadge").textContent = "v" + APP_VERSION;
   await openDB();
   apps = await dbAll();
   render();
+  checkUpdate();
   // trwałość danych — iOS respektuje to dla apek z ekranu głównego
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   // service worker — tryb offline (działa po wgraniu na hosting)

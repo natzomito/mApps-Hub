@@ -1,5 +1,7 @@
-/* mApps Hub — service worker: launcher działa offline po pierwszym otwarciu */
-const CACHE = "mappshub-v2";
+/* mApps Hub — service worker v3
+   Strategia: network-first z zapasem z cache.
+   Online: zawsze świeża wersja z repo. Offline: ostatnia pobrana kopia. */
+const CACHE = "mappshub-v3";
 const ASSETS = ["./", "./index.html", "./icon.png", "./manifest.webmanifest"];
 
 self.addEventListener("install", e => {
@@ -14,19 +16,20 @@ self.addEventListener("activate", e => {
   );
 });
 
-/* cache-first dla własnych plików; sieć tylko gdy brak w cache */
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then(hit =>
-      hit ||
-      fetch(e.request).then(resp => {
+    fetch(e.request).then(resp => {
+      if (resp.ok){
         const copy = resp.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));
-        return resp;
-      }).catch(() => caches.match("./index.html"))
+      }
+      return resp;
+    }).catch(() =>
+      caches.match(e.request, { ignoreSearch: true })
+        .then(hit => hit || caches.match("./index.html"))
     )
   );
 });
