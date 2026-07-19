@@ -3,379 +3,498 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Game of Ur</title>
+<title>Royal Game of Ur</title>
 <style>
 :root{
-  --bg:#0F1311; --surface:#181E1A; --surface-2:#1F2621; --line:#29322C;
-  --text:#EDF1EC; --muted:#939D94; --honey:#E8A93D; --honey-deep:#C97F26;
-  --bone:#CFC9B8; --bone-deep:#A39D8B;
-  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+  --ink:#14110f; --shell:#EDE6D3; --lapis:#4b76b8; --carnelian:#9C3B2E;
+  --gold:#C9A227; --goldBright:#E0BE55;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
-  background:var(--bg);color:var(--text);
+  background:radial-gradient(ellipse at 50% 0%, #241c15 0%, #14110f 55%, #0c0a08 100%);
+  min-height:100vh;color:var(--shell);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-  padding:calc(var(--safe-top) + 16px) 14px calc(var(--safe-bottom) + 20px);
-  max-width:560px;margin:0 auto;font-size:16px;-webkit-font-smoothing:antialiased;
-  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  display:flex;flex-direction:column;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 12px calc(env(safe-area-inset-bottom,0px) + 24px);
+  -webkit-user-select:none;user-select:none;
 }
+.serif{font-family:"Palatino Linotype",Palatino,Georgia,"Times New Roman",serif}
+.wrap{width:100%;max-width:440px}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
-h1{font-size:24px;font-weight:300;margin-bottom:2px}
-h1 b{font-weight:800}
-.sub{font-size:12px;color:var(--muted);margin-bottom:14px}
 
-/* status gracza */
-.side{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--surface);border:1px solid var(--line);border-radius:13px;
-  padding:9px 13px;margin:8px 0;font-size:14px;
-}
-.side.active{border-color:var(--honey)}
-.side .who{display:flex;align-items:center;gap:8px;font-weight:600}
-.dotp{width:15px;height:15px;border-radius:50%}
-.dotp.h{background:radial-gradient(circle at 35% 30%, #F5C56A, var(--honey-deep))}
-.dotp.a{background:radial-gradient(circle at 35% 30%, #E8E3D4, var(--bone-deep))}
-.side .nums{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--muted)}
-.side .nums b{color:var(--text);font-weight:600}
+header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+h1{font-size:21px;letter-spacing:.5px;font-weight:600}
+.sub{font-size:11px;letter-spacing:1px;opacity:.5;margin-top:2px}
+.icons{display:flex;gap:8px}
+.icon-btn{padding:9px;border-radius:50%;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;line-height:0}
+.icon-btn:active{transform:scale(.94)}
 
-/* plansza */
-.board{
-  display:grid;grid-template-columns:repeat(8,1fr);gap:5px;
-  background:var(--surface);border:1px solid var(--line);border-radius:16px;
-  padding:10px;margin:6px 0;
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;
+  box-shadow:0 20px 50px rgba(0,0,0,.45);
+  animation:fadeIn .5s ease both;
 }
-.cell{
-  aspect-ratio:1;border-radius:10px;background:var(--surface-2);
-  border:1px solid var(--line);position:relative;
-  display:grid;place-items:center;
-}
-.cell.void{background:none;border:none}
-.cell.rosette::before{
-  content:"✦";position:absolute;inset:0;display:grid;place-items:center;
-  color:rgba(232,169,61,.4);font-size:20px;
-}
-.cell.movable{border-color:var(--honey);box-shadow:0 0 0 1px var(--honey)}
-.cell.target{border-color:var(--honey);border-style:dashed}
-.piece{
-  width:68%;height:68%;border-radius:50%;position:relative;z-index:2;
-  box-shadow:0 2px 6px rgba(0,0,0,.45);
-  transition:transform .1s;
-}
-.piece.h{background:radial-gradient(circle at 35% 30%, #F5C56A, var(--honey-deep))}
-.piece.a{background:radial-gradient(circle at 35% 30%, #E8E3D4, var(--bone-deep))}
-.cell.movable .piece{transform:scale(1.08)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.turn-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.turn{font-size:13px;letter-spacing:1.5px;font-weight:600}
+.roll-num{font-size:26px;color:var(--gold);line-height:1;font-weight:700}
+.message{opacity:.85;font-size:12.5px;min-height:34px;line-height:1.5;margin:4px 0 8px}
 
-/* kości i sterowanie */
-.controls{display:flex;align-items:center;gap:10px;margin-top:8px}
-.dice{display:flex;gap:7px}
-.die{
-  width:34px;height:34px;background:var(--surface-2);border:1px solid var(--line);
-  border-radius:9px;display:grid;place-items:center;
-}
-.die::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--line)}
-.die.hit::after{background:var(--honey)}
-.btn{
-  flex:1;padding:13px;border-radius:13px;font-size:16px;font-weight:700;
-  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;
-}
-.btn:active{opacity:.85}
-.btn:disabled{opacity:.35}
-.btn.ghost{background:var(--surface);border:1px solid var(--line);color:var(--muted);font-weight:600;flex:0 0 auto;padding:13px 15px}
+.dice-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dice{display:flex;gap:6px}
+.die{width:24px;height:24px;border-radius:4px;display:grid;place-items:center;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);transition:background .12s}
+.die.hit{background:var(--gold);border-color:var(--goldBright)}
+.die i{width:5px;height:5px;border-radius:50%;background:transparent;display:block}
+.die.hit i{background:var(--ink)}
+.btn-roll{padding:9px 18px;border-radius:999px;font-weight:600;background:var(--carnelian);
+  color:var(--shell);font-size:13px;letter-spacing:.5px}
+.btn-roll:disabled{opacity:.3;cursor:default}
+.btn-roll:not(:disabled):active{transform:scale(.96)}
 
-.msg{
-  min-height:42px;margin-top:10px;padding:10px 14px;
-  background:var(--surface);border:1px solid var(--line);border-radius:12px;
-  font-size:14px;color:var(--muted);line-height:1.45;text-align:center;
-}
-.msg b{color:var(--honey)}
-.rules{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:14px}
-.rules b{color:var(--text);font-weight:600}
+.tray{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  border-radius:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);margin-bottom:8px}
+.tray .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.65}
+.tray .groups{display:flex;align-items:center;gap:12px}
+.tray .sep{opacity:.25}
+.pips{display:flex;gap:4px;align-items:center;border-radius:8px;padding:3px;min-height:19px}
+.pips.clickable{outline:2px solid var(--goldBright);outline-offset:2px;animation:pulse 1.2s infinite}
+.pip{width:13px;height:13px;border-radius:50%;display:inline-block}
+.pip.dim{opacity:.55}
+.empty{color:var(--shell);opacity:.3;font-size:12px}
+.pip.h,.piece.h{background:radial-gradient(circle at 32% 28%, #fbf6ea 0%, #e4d8bb 45%, #b7a878 100%);
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.35), inset 0 1px 1px rgba(255,255,255,.6)}
+.pip.a,.piece.a{background:radial-gradient(circle at 32% 28%, #5c86c4 0%, #2a4a86 45%, #12244a 100%);
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.45), inset 0 1px 1px rgba(255,255,255,.25)}
+
+.board-wrap{background:rgba(0,0,0,.28);border-radius:14px;padding:8px;margin-bottom:8px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.cell{aspect-ratio:1;border-radius:7px;position:relative;display:grid;place-items:center;
+  background:linear-gradient(160deg,#d8c8a0,#c2af80);border:1px solid #241c15}
+.cell.gap{background:none;border:none}
+.cell.rosette{background:linear-gradient(160deg,#ecdca8,#cdb475)}
+.cell svg{position:absolute;inset:0;margin:auto;width:58%;height:58%;opacity:.6;pointer-events:none}
+.piece{position:relative;z-index:2;width:70%;height:70%;border-radius:50%}
+.piece.movable{cursor:pointer;outline:2px solid var(--goldBright);outline-offset:2px;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.btn-again{width:100%;margin-top:8px;padding:11px;border-radius:999px;font-weight:700;
+  background:var(--gold);color:var(--ink);font-size:13px}
+
+.log-toggle{font-size:12px;opacity:.6;margin-top:12px}
+.log{margin-top:8px;border-radius:12px;padding:12px;font-size:12px;overflow-y:auto;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);opacity:.85;max-height:180px;line-height:1.7}
+.log p{margin:0}
+
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(8,6,4,.75);
+  display:flex;align-items:flex-end;justify-content:center}
+.modal{width:100%;max-width:440px;background:#1c1712;border:1px solid rgba(255,255,255,.08);
+  border-radius:18px 18px 0 0;padding:20px;max-height:85vh;overflow-y:auto}
+@media(min-width:520px){.overlay{align-items:center}.modal{border-radius:18px}}
+.modal h2{color:var(--gold);font-size:17px;margin:0}
+.modal .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.modal .body{opacity:.92;font-size:14px;line-height:1.65}
+.modal .body p{margin:0 0 10px}
+.modal .body strong{color:var(--goldBright)}
+.modal .note{opacity:.7;font-size:12.5px}
+.btn-gold{width:100%;margin-top:10px;padding:11px;border-radius:999px;font-weight:700;
+  background:var(--gold);color:var(--ink);font-size:13px}
+.hidden{display:none!important}
+@media (prefers-reduced-motion: reduce){.piece.movable,.pips.clickable,.card{animation:none!important}}
 </style>
 </head>
 <body>
 
-<h1>Game of <b>Ur</b></h1>
-<div class="sub">The Royal Game of Ur, Mesopotamia c. 2600 BC · I. Finkel's reconstruction</div>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 class="serif">Royal Game of Ur</h1>
+      <div class="sub">C. 2600 BCE · MESOPOTAMIA</div>
+    </div>
+    <div class="icons">
+      <button class="icon-btn" id="btnHistory" aria-label="History">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EDE6D3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      </button>
+      <button class="icon-btn" id="btnRules" aria-label="Rules">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EDE6D3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnNew" aria-label="New game">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EDE6D3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </div>
+  </header>
 
-<div class="side" id="sideA">
-  <span class="who"><span class="dotp a"></span> Opponent</span>
-  <span class="nums">home <b id="poolA">7</b> · off <b id="offA">0</b></span>
+  <div class="card">
+    <div class="turn-row">
+      <div class="turn serif" id="turnLabel">TWOJA TURA</div>
+      <div class="roll-num serif hidden" id="rollNum"></div>
+    </div>
+    <p class="message" id="message">Your turn — roll the dice to begin.</p>
+
+    <div class="dice-row">
+      <div class="dice" id="dice">
+        <div class="die"><i></i></div><div class="die"><i></i></div>
+        <div class="die"><i></i></div><div class="die"><i></i></div>
+      </div>
+      <button class="btn-roll serif" id="btnRoll">Roll dice</button>
+    </div>
+
+    <div class="tray" id="trayA">
+      <span class="label">Lapis — AI</span>
+      <div class="groups">
+        <div class="pips a" id="handA"></div>
+        <span class="sep">│</span>
+        <div class="pips a" id="finA"></div>
+      </div>
+    </div>
+
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+
+    <div class="tray" id="trayH">
+      <span class="label">Shell — You</span>
+      <div class="groups">
+        <div class="pips h" id="handH"></div>
+        <span class="sep">│</span>
+        <div class="pips h" id="finH"></div>
+      </div>
+    </div>
+
+    <button class="btn-again serif hidden" id="btnAgain">Play again</button>
+  </div>
+
+  <button class="log-toggle" id="logToggle">▸ show game log</button>
+  <div class="log hidden" id="logBox"></div>
 </div>
 
-<div class="board" id="board"></div>
-
-<div class="side active" id="sideH">
-  <span class="who"><span class="dotp h"></span> You</span>
-  <span class="nums">home <b id="poolH">7</b> · off <b id="offH">0</b></span>
+<!-- MODAL: ZASADY -->
+<div class="overlay hidden" id="modalRules">
+  <div class="modal">
+    <div class="top">
+      <h2 class="serif">Game rules</h2>
+      <button class="icon-btn" data-close="modalRules" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EDE6D3" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="body">
+      <p><strong>Goal:</strong> be the first to move all 7 of your pieces across the board and off the end of the track.</p>
+      <p><strong>Board:</strong> 20 squares. Each player has 4 private starting squares and 2 private finishing squares, off-limits to the opponent. The middle row is 8 shared squares that both players cross — and where they can capture each other.</p>
+      <p><strong>Dice:</strong> 4 tetrahedral binary dice (0 or 1 each), 0–4 pips total. A roll of 2 is most common; 0 and 4 are rarest.</p>
+      <p><strong>Move:</strong> move one piece exactly the number of squares rolled — a piece from hand enters directly onto the square equal to the roll (within your 4 private starting squares).</p>
+      <p><strong>Blocking:</strong> you cannot place a piece on a square occupied by your own piece.</p>
+      <p><strong>Capture:</strong> on the shared middle-row squares, landing exactly on an opponent's piece sends it back to hand. Exception: the central rosette square is safe — no one can be captured or blocked there.</p>
+      <p><strong>Rosettes:</strong> the 5 decorated squares (2 private per player + 1 shared) grant an extra roll to whoever lands on them.</p>
+      <p><strong>Leaving the board:</strong> requires a roll that moves a piece exactly "off the board" — overshooting is not allowed, you must hit it exactly.</p>
+      <p><strong>Miss:</strong> rolling 0 or having no legal move passes the turn with no action.</p>
+      <p class="note">The 7-piece variant follows the reconstruction by British Assyriologist Irving Finkel (British Museum), based on a Babylonian cuneiform tablet from c. 177 BCE. Some simplified commercial sets use 5 pieces instead.</p>
+    </div>
+  </div>
 </div>
 
-<div class="controls">
-  <div class="dice" id="dice"><div class="die"></div><div class="die"></div><div class="die"></div><div class="die"></div></div>
-  <button class="btn" id="btnRoll">Roll dice</button>
-  <button class="btn ghost" id="btnNew">New</button>
-</div>
-
-<div class="msg" id="msg">Roll the dice to begin. Four binary dice — your move is the number of marked corners (0–4).</div>
-
-<div class="rules">
-<b>Rules:</b> bring all 7 pieces onto the board, race them along your path and bear them off with an exact roll. The middle row is shared — landing on an opponent's piece captures it (back to start), but the ✦ square in the middle is safe. Landing on ✦ grants an extra roll. A roll of 0 = lost turn.
+<!-- MODAL: HISTORIA -->
+<div class="overlay hidden" id="modalHistory">
+  <div class="modal">
+    <div class="top">
+      <h2 class="serif">History of the game</h2>
+      <button class="icon-btn" data-close="modalHistory" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EDE6D3" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="body">
+      <p>In 1922, British archaeologist Leonard Woolley came across this game during excavations of the royal tombs of the ancient city of Ur, in present-day southern Iraq. The most famous surviving board, inlaid with mother-of-pearl, lapis lazuli and red limestone, is about 4,600 years old.</p>
+      <p>Judging by the finds, the game spread across the ancient Near East — boards have been discovered in present-day Iraq, Iran, Syria, Lebanon and Egypt, and even in Cyprus and Crete. Rulers and commoners alike played it; four very similar boards were found in Tutankhamun's tomb.</p>
+      <p>For thousands of years nobody knew exactly how it was played — the rules vanished along with the civilizations that created them. They were deciphered only by British Assyriologist Irving Finkel of the British Museum, who read a Babylonian cuneiform tablet written around 177 BCE by a scribe named Itti-Marduk-balatu. It described each square of the board as a kind of fortune, from which the logic of the track and the moves could be reconstructed.</p>
+      <p>The game fell out of use in late antiquity for unclear reasons, probably giving way to backgammon. Today it is largely unknown to the wider public — although in recent years enthusiasts, including in Iraq itself, have begun to revive it.</p>
+      <button class="btn-gold serif" data-close="modalHistory">Let's play</button>
+    </div>
+  </div>
 </div>
 
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-/* ---------- geometria planszy ---------- */
-const VOID = new Set(["0,4","0,5","2,4","2,5"]);
-const ROSE = new Set(["0,0","2,0","1,3","0,6","2,6"]);
-const SAFE = "1,3"; // wspólna rozeta — bez zbijania
+/* ================= LOGIKA (port wersji JSX 1:1) ================= */
+const DICE_PROB = [1/16, 4/16, 6/16, 4/16, 1/16];
+const ROSETTE_KEYS = new Set(["0-3","2-3","1-3","0-7","2-7"]);
+const rollDiceValues = () => Array.from({length:4}, () => Math.random() < .5 ? 1 : 0);
 
-const PATH = {
-  h: [[2,3],[2,2],[2,1],[2,0],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7],[2,7],[2,6]],
-  a: [[0,3],[0,2],[0,1],[0,0],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7],[0,7],[0,6]]
-};
-const LEN = 14, OFF = 14, POOL = -1;
-
-/* ---------- stan ---------- */
-let S;
-function newGame(){
-  S = {
-    pieces: { h: Array(7).fill(POOL), a: Array(7).fill(POOL) },
-    turn: "h", roll: null, over: false, busy: false
-  };
-  msg("Roll the dice to begin.");
-  $("btnRoll").disabled = false;
-  drawDice([]);
-  render();
+function cellForIndex(player, idx){
+  if (idx <= 0 || idx >= 15) return null;
+  if (idx >= 1 && idx <= 4) return { row: player === "human" ? 0 : 2, col: idx - 1 };
+  if (idx >= 5 && idx <= 12) return { row: 1, col: idx - 5 };
+  return { row: player === "human" ? 0 : 2, col: 6 + (idx - 13) };
 }
-const other = p => p === "h" ? "a" : "h";
-const cellKey = (p, idx) => PATH[p][idx].join(",");
+const isRosetteIndex = idx => idx === 4 || idx === 8 || idx === 14;
+const isSharedIndex = idx => idx >= 5 && idx <= 12;
+const isRosetteCell = (r,c) => ROSETTE_KEYS.has(r+"-"+c);
 
-function pieceAt(p, key){
-  return S.pieces[p].findIndex(pos => pos >= 0 && pos < OFF && cellKey(p, pos) === key);
-}
-
-/* ---------- ruchy ---------- */
-function legalMoves(p, r){
-  const moves = []; // {piece, from, to}
-  let poolDone = false;
-  S.pieces[p].forEach((pos, i) => {
-    let to;
-    if (pos === POOL){
-      if (poolDone) return;
-      to = r - 1;
-    } else if (pos === OFF) return;
-    else to = pos + r;
-    if (to > OFF) return;
-    if (to < OFF){
-      const key = cellKey(p, to);
-      if (pieceAt(p, key) !== -1) return;               // własny pion
-      if (pieceAt(other(p), key) !== -1 && key === SAFE) return; // bezpieczna rozeta
+function getLegalMoves(player, roll, pieces){
+  if (!roll) return [];
+  const own = pieces[player];
+  const opp = pieces[player === "human" ? "ai" : "human"];
+  const moves = [];
+  own.forEach((pos, i) => {
+    if (pos <= 0 || pos >= 15) return;
+    const to = pos + roll;
+    if (to > 15) return;
+    if (to === 15){ moves.push({pieceIdx:i, from:pos, to, bearOff:true, capture:-1, rosette:false}); return; }
+    if (own.some((p,j) => j !== i && p === to)) return;
+    if (isSharedIndex(to)){
+      const oppIdxAt = opp.findIndex(p => p === to);
+      if (to === 8 && oppIdxAt !== -1) return;
+      moves.push({pieceIdx:i, from:pos, to, bearOff:false, capture: to !== 8 ? oppIdxAt : -1, rosette:isRosetteIndex(to)});
+    } else {
+      moves.push({pieceIdx:i, from:pos, to, bearOff:false, capture:-1, rosette:isRosetteIndex(to)});
     }
-    if (pos === POOL) poolDone = true;
-    moves.push({ piece: i, from: pos, to });
   });
+  if (own.some(p => p === 0) && roll >= 1 && roll <= 4){
+    const to = roll;
+    if (!own.some(p => p === to))
+      moves.push({pieceIdx:-1, from:0, to, bearOff:false, capture:-1, rosette:isRosetteIndex(to)});
+  }
   return moves;
 }
-
-function applyMove(p, m){
-  if (m.to < OFF){
-    const key = cellKey(p, m.to);
-    const hit = pieceAt(other(p), key);
-    if (hit !== -1) S.pieces[other(p)][hit] = POOL;
+function applyMove(player, move, pieces){
+  const opponent = player === "human" ? "ai" : "human";
+  const np = { human:[...pieces.human], ai:[...pieces.ai] };
+  let idx = move.pieceIdx;
+  if (idx === -1) idx = np[player].findIndex(p => p === 0);
+  np[player][idx] = move.to;
+  let captured = false;
+  if (move.capture !== undefined && move.capture !== -1){
+    np[opponent][move.capture] = 0; captured = true;
   }
-  S.pieces[p][m.piece] = m.to;
-  const rosette = m.to < OFF && ROSE.has(cellKey(p, m.to));
-  return rosette;
+  return { pieces:np, rosette:move.rosette, bearOff:move.to === 15, captured };
 }
-
-function winner(){
-  if (S.pieces.h.every(x => x === OFF)) return "h";
-  if (S.pieces.a.every(x => x === OFF)) return "a";
+function checkWinner(pieces){
+  if (pieces.human.every(p => p === 15)) return "human";
+  if (pieces.ai.every(p => p === 15)) return "ai";
   return null;
 }
-
-/* ---------- kości ---------- */
-function rollDice(){
-  const d = [0,0,0,0].map(() => Math.random() < 0.5 ? 1 : 0);
-  drawDice(d);
-  return d.reduce((a,b) => a+b, 0);
+function threatLevel(targetIdx, opp){
+  let prob = 0;
+  opp.forEach(p => {
+    if (p <= 0 || p >= 15) return;
+    const r = targetIdx - p;
+    if (r >= 1 && r <= 4) prob += DICE_PROB[r];
+  });
+  return Math.min(prob, 1);
 }
-function drawDice(d){
-  [...$("dice").children].forEach((el, i) => el.classList.toggle("hit", !!d[i]));
+function scoreMove(move, pieces, player){
+  const opponent = player === "human" ? "ai" : "human";
+  let s = 0;
+  if (move.capture !== -1) s += 6 + pieces[opponent][move.capture] * .5;
+  if (move.bearOff) s += 12;
+  if (move.rosette) s += 5;
+  s += move.to * .4;
+  if (isSharedIndex(move.to) && move.to !== 8 && !move.bearOff)
+    s -= threatLevel(move.to, pieces[opponent]) * 5;
+  return s + Math.random() * .6;
+}
+function chooseAiMove(moves, pieces){
+  let best = moves[0], bestScore = -Infinity;
+  for (const m of moves){
+    const s = scoreMove(m, pieces, "ai");
+    if (s > bestScore){ bestScore = s; best = m; }
+  }
+  return best;
 }
 
-/* ---------- render ---------- */
+/* ================= STAN + UI ================= */
+let pieces, current, roll, legalMoves, winner, rolling = false, aiRunning = false;
+let log = [];
+
+function addLog(m){
+  log.unshift(m); log = log.slice(0, 50);
+  $("logBox").innerHTML = log.length ? log.map(l => "<p>"+l+"</p>").join("") : '<p style="opacity:.5">No moves yet.</p>';
+}
+function setMessage(m){ $("message").textContent = m; }
+
+function drawDice(faces){
+  [...$("dice").children].forEach((el,i) => el.classList.toggle("hit", !!faces[i]));
+}
+async function rollAnimation(){
+  rolling = true; updateButtons();
+  for (let i = 0; i < 7; i++){ drawDice(rollDiceValues()); await sleep(65); }
+  const f = rollDiceValues(); drawDice(f);
+  rolling = false;
+  return f;
+}
+
+function rosetteSVG(){
+  const dots = [0,45,90,135,180,225,270,315].map(deg => {
+    const rad = deg*Math.PI/180;
+    const x = 12 + Math.cos(rad)*7, y = 12 + Math.sin(rad)*7;
+    return '<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="1.5" fill="#C9A227"/>';
+  }).join("");
+  return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.1" fill="#C9A227"/>'+dots+'</svg>';
+}
+
 function buildBoard(){
   const b = $("board");
   for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++){
     const el = document.createElement("div");
-    const key = r + "," + c;
-    el.className = "cell" + (VOID.has(key) ? " void" : "") + (ROSE.has(key) && !VOID.has(key) ? " rosette" : "");
-    el.dataset.key = key;
-    el.addEventListener("click", () => onCellTap(key));
+    const gap = (r === 0 || r === 2) && (c === 4 || c === 5);
+    el.className = "cell" + (gap ? " gap" : "") + (!gap && isRosetteCell(r,c) ? " rosette" : "");
+    el.dataset.key = r+"-"+c;
+    if (!gap && isRosetteCell(r,c)) el.innerHTML = rosetteSVG();
     b.appendChild(el);
   }
 }
+
 function render(){
-  document.querySelectorAll(".cell").forEach(el => {
-    el.classList.remove("movable","target");
-    const old = el.querySelector(".piece"); if (old) old.remove();
-  });
-  for (const p of ["h","a"]){
-    S.pieces[p].forEach(pos => {
-      if (pos < 0 || pos >= OFF) return;
-      const el = document.querySelector(`.cell[data-key="${cellKey(p, pos)}"]`);
-      if (el && !el.querySelector(".piece")){
-        const d = document.createElement("div");
-        d.className = "piece " + p;
-        el.appendChild(d);
+  document.querySelectorAll(".cell .piece").forEach(p => p.remove());
+  for (const pl of ["human","ai"]){
+    pieces[pl].forEach((pos, i) => {
+      const c = cellForIndex(pl, pos);
+      if (!c) return;
+      const cell = document.querySelector('.cell[data-key="'+c.row+'-'+c.col+'"]');
+      if (!cell) return;
+      const d = document.createElement("div");
+      d.className = "piece " + (pl === "human" ? "h" : "a");
+      if (pl === "human" && current === "human" && roll !== null &&
+          legalMoves.some(m => m.pieceIdx === i)){
+        d.classList.add("movable");
+        d.addEventListener("click", () => onPieceClick(i));
       }
+      cell.appendChild(d);
     });
   }
-  $("poolH").textContent = S.pieces.h.filter(x => x === POOL).length;
-  $("offH").textContent  = S.pieces.h.filter(x => x === OFF).length;
-  $("poolA").textContent = S.pieces.a.filter(x => x === POOL).length;
-  $("offA").textContent  = S.pieces.a.filter(x => x === OFF).length;
-  $("sideH").classList.toggle("active", S.turn === "h" && !S.over);
-  $("sideA").classList.toggle("active", S.turn === "a" && !S.over);
+  const renderTray = (pl, handEl, finEl) => {
+    const hand = pieces[pl].filter(p => p === 0).length;
+    const fin = pieces[pl].filter(p => p === 15).length;
+    const cls = pl === "human" ? "h" : "a";
+    handEl.innerHTML = hand ? ('<span class="pip '+cls+'"></span>').repeat(hand) : '<span class="empty">—</span>';
+    finEl.innerHTML = fin ? ('<span class="pip dim '+cls+'"></span>').repeat(fin) : '<span class="empty">—</span>';
+  };
+  renderTray("ai", $("handA"), $("finA"));
+  renderTray("human", $("handH"), $("finH"));
+  const handClickable = current === "human" && roll !== null && legalMoves.some(m => m.pieceIdx === -1);
+  $("handH").classList.toggle("clickable", handClickable);
+  const tl = $("turnLabel");
+  if (winner){ tl.textContent = winner === "human" ? "VICTORY" : "DEFEAT"; tl.style.color = "#C9A227"; }
+  else if (current === "human"){ tl.textContent = "YOUR TURN"; tl.style.color = "#C9A227"; }
+  else { tl.textContent = "AI TURN"; tl.style.color = "#4b76b8"; }
+  $("rollNum").classList.toggle("hidden", roll === null);
+  if (roll !== null) $("rollNum").textContent = roll;
+  $("btnAgain").classList.toggle("hidden", !winner);
+  updateButtons();
 }
-function highlight(moves){
-  moves.forEach(m => {
-    if (m.from >= 0){
-      const el = document.querySelector(`.cell[data-key="${cellKey("h", m.from)}"]`);
-      if (el) el.classList.add("movable");
-    }
-    if (m.to < OFF){
-      const el = document.querySelector(`.cell[data-key="${cellKey("h", m.to)}"]`);
-      if (el) el.classList.add("target");
-    }
-  });
+function updateButtons(){
+  $("btnRoll").disabled = current !== "human" || roll !== null || rolling || !!winner || aiRunning;
 }
-function msg(t){ $("msg").innerHTML = t; }
 
-/* ---------- tura człowieka ---------- */
-let pendingMoves = [];
+/* ================= TURY ================= */
+async function handleHumanRoll(){
+  if (current !== "human" || rolling || roll !== null || winner) return;
+  const faces = await rollAnimation();
+  const sum = faces.reduce((a,b)=>a+b,0);
+  roll = sum;
+  legalMoves = getLegalMoves("human", sum, pieces);
+  addLog("You: rolled " + sum + ".");
+  if (sum === 0 || !legalMoves.length){
+    setMessage(sum === 0 ? "Miss — 0 pips. Turn passes." : "No legal moves. Turn passes.");
+    render();
+    await sleep(1300);
+    roll = null; legalMoves = []; current = "ai";
+    setMessage("AI turn…"); render(); aiTurn();
+  } else {
+    setMessage("Choose a piece to move (highlighted).");
+    render();
+  }
+}
+function executeHumanMove(move){
+  const res = applyMove("human", move, pieces);
+  pieces = res.pieces;
+  let msg = "Ty: " + (move.pieceIdx === -1 ? "bring a piece onto square " : "move a piece to square ") +
+            "" + (move.to === 15 ? "the finish" : move.to) + ".";
+  if (res.captured) msg += " You capture an AI piece — back to hand!";
+  if (move.rosette) msg += " Rosette — roll again!";
+  addLog(msg);
+  const win = checkWinner(pieces);
+  roll = null; legalMoves = [];
+  if (win){
+    winner = win; setMessage("You win! All your pieces reached the finish."); render(); return;
+  }
+  if (move.rosette){ setMessage("Rosette! Roll again."); render(); }
+  else { current = "ai"; setMessage("AI turn…"); render(); aiTurn(); }
+}
+function onPieceClick(i){
+  if (current !== "human" || roll === null || winner) return;
+  const m = legalMoves.find(m => m.pieceIdx === i);
+  if (m) executeHumanMove(m);
+}
+$("handH").addEventListener("click", () => {
+  if (current !== "human" || roll === null || winner) return;
+  const m = legalMoves.find(m => m.pieceIdx === -1);
+  if (m) executeHumanMove(m);
+});
+$("btnRoll").addEventListener("click", handleHumanRoll);
 
-$("btnRoll").addEventListener("click", () => {
-  if (S.over || S.busy || S.turn !== "h" || S.roll !== null) return;
-  const r = rollDice();
-  S.roll = r;
-  if (r === 0){
-    msg("Roll: <b>0</b> — you lose your turn.");
-    endTurn(false);
-    return;
+async function aiTurn(){
+  if (winner || aiRunning) return;
+  aiRunning = true; updateButtons();
+  let keepGoing = true;
+  while (keepGoing && !winner){
+    await sleep(700);
+    const faces = await rollAnimation();
+    const sum = faces.reduce((a,b)=>a+b,0);
+    addLog("AI: rolled " + sum + ".");
+    const moves = getLegalMoves("ai", sum, pieces);
+    if (sum === 0 || !moves.length){
+      setMessage(sum === 0 ? "AI rolled 0 — miss, turn passes." : "AI has no move — turn passes.");
+      await sleep(1000);
+      break;
+    }
+    const best = chooseAiMove(moves, pieces);
+    setMessage("AI is thinking…");
+    await sleep(550);
+    const res = applyMove("ai", best, pieces);
+    pieces = res.pieces;
+    let msg = "AI: " + (best.pieceIdx === -1 ? "brings a piece onto square " : "moves a piece to square ") +
+              "" + (best.to === 15 ? "the finish" : best.to) + ".";
+    if (res.captured) msg += " AI captures your piece — back to hand!";
+    if (best.rosette) msg += " Rosette — AI rolls again!";
+    addLog(msg);
+    const win = checkWinner(pieces);
+    if (win){ winner = win; setMessage("AI completed the race. You lost this game."); keepGoing = false; }
+    else {
+      keepGoing = !!best.rosette;
+      setMessage(keepGoing ? "AI landed on a rosette and rolls again…" : "Your turn — roll the dice.");
+    }
+    render();
   }
-  pendingMoves = legalMoves("h", r);
-  if (!pendingMoves.length){
-    msg(`Roll: <b>${r}</b> — no legal move.`);
-    endTurn(false);
-    return;
-  }
-  msg(`Roll: <b>${r}</b> — choose a piece` + (pendingMoves.some(m => m.from === POOL) ? " (tap a target square to enter a new one)" : "") + ".");
-  highlight(pendingMoves);
+  if (!winner){ current = "human"; roll = null; legalMoves = []; setMessage("Your turn — roll the dice."); }
+  aiRunning = false; render();
+}
+
+/* ================= RESZTA UI ================= */
+function resetGame(){
+  pieces = { human:Array(7).fill(0), ai:Array(7).fill(0) };
+  current = "human"; roll = null; legalMoves = []; winner = null; aiRunning = false;
+  log = []; $("logBox").innerHTML = '<p style="opacity:.5">No moves yet.</p>';
+  drawDice([0,0,0,0]);
+  setMessage("New game — your turn. Roll the dice.");
+  render();
+}
+$("btnNew").addEventListener("click", resetGame);
+$("btnAgain").addEventListener("click", resetGame);
+$("btnRules").addEventListener("click", () => $("modalRules").classList.remove("hidden"));
+$("btnHistory").addEventListener("click", () => $("modalHistory").classList.remove("hidden"));
+document.querySelectorAll("[data-close]").forEach(b =>
+  b.addEventListener("click", () => $(b.dataset.close).classList.add("hidden")));
+document.querySelectorAll(".overlay").forEach(o =>
+  o.addEventListener("click", e => { if (e.target === o) o.classList.add("hidden"); }));
+$("logToggle").addEventListener("click", () => {
+  const closed = $("logBox").classList.toggle("hidden");
+  $("logToggle").textContent = closed ? "▸ show game log" : "▾ hide game log";
 });
 
-function onCellTap(key){
-  if (S.turn !== "h" || S.roll === null || S.over || S.busy) return;
-  // pion na planszy
-  let mv = pendingMoves.find(m => m.from >= 0 && cellKey("h", m.from) === key);
-  // wejście z puli: dotknięcie pola docelowego
-  if (!mv) mv = pendingMoves.find(m => m.from === POOL && m.to < OFF && cellKey("h", m.to) === key);
-  if (!mv) return;
-  doHumanMove(mv);
-}
-
-function doHumanMove(mv){
-  const again = applyMove("h", mv);
-  render();
-  const w = winner();
-  if (w){ finish(w); return; }
-  if (again){
-    S.roll = null; pendingMoves = [];
-    msg("✦ Rosette — roll again!");
-    return;
-  }
-  endTurn(false);
-}
-
-function endTurn(silent){
-  S.roll = null; pendingMoves = [];
-  S.turn = other(S.turn);
-  render();
-  if (S.turn === "a") setTimeout(aiTurn, silent ? 300 : 850);
-  else $("btnRoll").disabled = false;
-}
-
-/* ---------- AI ---------- */
-function aiPick(moves){
-  const danger = m => { // czy cel może zostać zbity w środkowym rzędzie
-    if (m.to >= OFF) return false;
-    const [r] = PATH.a[m.to];
-    return r === 1 && cellKey("a", m.to) !== SAFE;
-  };
-  const scored = moves.map(m => {
-    let s = m.to; // preferuj postęp
-    if (m.to === OFF) s += 100;
-    if (m.to < OFF){
-      const key = cellKey("a", m.to);
-      if (pieceAt("h", key) !== -1) s += 60;          // zbicie
-      if (ROSE.has(key)) s += 40;                     // rozeta = extra rzut
-      if (key === SAFE) s += 15;
-      if (m.from >= 0 && PATH.a[m.from][0] === 1 && danger({to:m.from}) === false){} // noop
-      if (danger(m)) s -= 8;                          // nie pchaj się pod zbicie bez powodu
-      if (m.from >= 0 && PATH.a[m.from][0] === 1 && cellKey("a", m.from) !== SAFE) s += 10; // uciekaj z zagrożenia
-    }
-    return { m, s };
-  });
-  scored.sort((a, b) => b.s - a.s);
-  return scored[0].m;
-}
-
-function aiTurn(){
-  if (S.over) return;
-  S.busy = true;
-  $("btnRoll").disabled = true;
-  const r = rollDice();
-  if (r === 0){
-    msg("Opponent rolls <b>0</b> — loses the turn. Your move.");
-    S.busy = false; endTurn(true); return;
-  }
-  const moves = legalMoves("a", r);
-  if (!moves.length){
-    msg(`Opponent rolls <b>${r}</b> — no move. Your move.`);
-    S.busy = false; endTurn(true); return;
-  }
-  const mv = aiPick(moves);
-  setTimeout(() => {
-    const captured = mv.to < OFF && pieceAt("h", cellKey("a", mv.to)) !== -1;
-    const again = applyMove("a", mv);
-    render();
-    const w = winner();
-    if (w){ finish(w); return; }
-    let t = `Opponent rolls <b>${r}</b>` + (mv.to === OFF ? " — a piece borne off." : captured ? " — <b>captures your piece!</b>" : ".");
-    if (again){
-      msg(t + " ✦ Rosette — rolls again…");
-      setTimeout(aiTurn, 950);
-      return;
-    }
-    msg(t + " Your move.");
-    S.busy = false;
-    endTurn(true);
-  }, 600);
-}
-
-function finish(w){
-  S.over = true; S.busy = false;
-  render();
-  $("btnRoll").disabled = true;
-  msg(w === "h" ? "🏆 <b>You win!</b> All 7 pieces are off the board." : "The opponent bore off all pieces. Try again!");
-}
-
-$("btnNew").addEventListener("click", () => { if (confirm("Start a new game?")) newGame(); });
-
 buildBoard();
-newGame();
+resetGame();
+$("modalHistory").classList.remove("hidden");
 </script>
 </body>
 </html>

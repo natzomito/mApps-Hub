@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GlitchText</title>
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#141824; --panel2:#1b2130; --line:#2a3247;
+    --txt:#e8ecf4; --dim:#8b94a8; --acc:#39e6c3; --acc2:#ff3d7f; --warn:#ffd23d;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;}
+  body{max-width:640px;margin:0 auto;padding:14px 14px 40px;}
+  h1{font-size:1.25rem;margin:6px 0 2px;letter-spacing:.5px}
+  h1 .g{color:var(--acc)} h1 .p{color:var(--acc2)}
+  .sub{color:var(--dim);font-size:.8rem;margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  label.lab{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px}
+  textarea{width:100%;min-height:70px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:1.05rem;padding:10px 12px;resize:vertical;font-family:inherit}
+  textarea:focus{outline:none;border-color:var(--acc)}
+  .styles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .style-btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);
+    padding:10px 4px;font-size:.72rem;cursor:pointer;text-align:center;transition:.15s}
+  .style-btn .ic{display:block;font-size:1.2rem;margin-bottom:4px;font-family:monospace}
+  .style-btn.on{border-color:var(--acc);background:#123b34;color:var(--acc)}
+  input[type=range]{width:100%;accent-color:var(--acc);height:28px}
+  .bgs{display:flex;gap:8px;flex-wrap:wrap}
+  .bg-btn{flex:1;min-width:90px;height:40px;border-radius:10px;border:2px solid var(--line);cursor:pointer;
+    font-size:.72rem;color:#fff;text-shadow:0 1px 3px #000;background:#000}
+  .bg-btn.on{border-color:var(--acc)}
+  .bg-solid{background:#0a0a0f}
+  .bg-grad{background:linear-gradient(135deg,#0f2027,#203a43,#2c5364)}
+  .bg-pulse{background:repeating-linear-gradient(45deg,#160a1e 0 8px,#1f0d2e 8px 16px)}
+  .btn{display:block;width:100%;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:700;
+    cursor:pointer;transition:.15s}
+  .btn-acc{background:linear-gradient(90deg,var(--acc),#2bb3ff);color:#04120e}
+  .btn-acc:active{transform:scale(.98)}
+  .btn-ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .btn-pink{background:linear-gradient(90deg,var(--acc2),#ff7a3d);color:#1a0208}
+  canvas#preview{width:100%;border-radius:12px;border:1px solid var(--line);background:#000;display:block}
+  .overlay{position:fixed;inset:0;background:rgba(4,6,10,.86);display:none;align-items:center;justify-content:center;
+    padding:18px;z-index:50;backdrop-filter:blur(4px)}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;width:100%;max-width:440px;
+    max-height:92vh;overflow-y:auto}
+  .modal h2{margin:0 0 14px;font-size:1.05rem}
+  .opt-row{display:flex;gap:8px;margin-bottom:14px}
+  .opt{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);
+    padding:10px 4px;font-size:.85rem;cursor:pointer;text-align:center}
+  .opt.on{border-color:var(--acc);color:var(--acc);background:#123b34}
+  .row2{display:flex;gap:10px;margin-top:12px}
+  .row2 .btn{margin:0}
+  #gifView{width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:#000}
+  .prog{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:12px 0}
+  .prog>div{height:100%;width:0%;background:linear-gradient(90deg,var(--acc),#2bb3ff);transition:width .1s}
+  .stat{font-size:.78rem;color:var(--dim);text-align:center}
+  .hidden{display:none!important}
+  /* zakladki */
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--dim);
+    padding:12px;font-size:.9rem;font-weight:700;cursor:pointer;transition:.15s}
+  .tab.on{color:var(--acc);border-color:var(--acc);background:#123b34}
+  #out{width:100%;min-height:96px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:12px;font-size:1.15rem;line-height:1.5;word-break:break-word;white-space:pre-wrap;color:var(--txt)}
+  .copied{color:var(--acc)!important;border-color:var(--acc)!important}
+</style>
+</head>
+<body>
+
+<h1><span class="g">Glitch</span><span class="p">Text</span></h1>
+<div class="sub">glitched text → chat or looped GIF · 100% offline</div>
+
+<div class="tabs">
+  <button class="tab on" id="tabStaticBtn" data-t="static">Text (for chat)</button>
+  <button class="tab" id="tabAnimBtn" data-t="anim">Animated (GIF)</button>
+</div>
+
+<!-- ZAKLADKA: STATYCZNY TEKST UNICODE -->
+<div id="paneStatic">
+<div class="card">
+  <label class="lab" for="stTxt">Text</label>
+  <textarea id="stTxt" rows="2" maxlength="300" placeholder="Type something…">GLITCH</textarea>
+</div>
+
+<div class="card">
+  <label class="lab">Style</label>
+  <div class="styles" id="stStyles" style="grid-template-columns:repeat(3,1fr)">
+    <button class="style-btn on" data-s="zalgo"><span class="ic">Z̷̢a̸̛l̶͠g̵̕o̶̿</span>Zalgo</button>
+    <button class="style-btn" data-s="look"><span class="ic">ⲀꞒϾ</span>Lookalikes</button>
+    <button class="style-btn" data-s="strike"><span class="ic">S̶t̶r̶</span>Strikethrough</button>
+  </div>
+  <label class="lab" style="margin-top:14px">Intensity <span id="stIntVal" style="color:var(--acc)">40%</span></label>
+  <input type="range" id="stIntensity" min="5" max="100" value="40">
+</div>
+
+<div class="card">
+  <label class="lab">Result — select and copy, or use the button</label>
+  <div id="out"></div>
+  <div class="row2">
+    <button class="btn btn-acc" id="copyBtn">Copy</button>
+    <button class="btn btn-ghost" id="rerollBtn">Re-roll 🎲</button>
+  </div>
+</div>
+</div>
+
+<!-- ZAKLADKA: ANIMOWANE -->
+<div id="paneAnim" class="hidden">
+<div class="card">
+  <label class="lab" for="txt">Text</label>
+  <textarea id="txt" rows="2" maxlength="120" placeholder="Type something…">GLITCH</textarea>
+</div>
+
+<div class="card">
+  <label class="lab">Glitch style</label>
+  <div class="styles" id="styles">
+    <button class="style-btn on" data-s="rgb"><span class="ic">R&#x0336;G&#x0337;B&#x0338;</span>RGB channels</button>
+    <button class="style-btn" data-s="slice"><span class="ic">&#x259A;&#x259E;</span>Slices</button>
+    <button class="style-btn" data-s="scramble"><span class="ic">#%@</span>Scrambler</button>
+    <button class="style-btn" data-s="blocks"><span class="ic">&#x25A9;&#x25A8;</span>Blocks</button>
+  </div>
+  <label class="lab" style="margin-top:14px">Intensity <span id="intVal" style="color:var(--acc)">50%</span></label>
+  <input type="range" id="intensity" min="5" max="100" value="50">
+</div>
+
+<div class="card">
+  <label class="lab">Background</label>
+  <div class="bgs" id="bgs">
+    <button class="bg-btn bg-solid on" data-b="solid">Dark</button>
+    <button class="bg-btn bg-grad" data-b="grad">Gradient</button>
+    <button class="bg-btn bg-pulse" data-b="pulse">Pulse</button>
+  </div>
+</div>
+
+<div class="card">
+  <label class="lab">Live preview</label>
+  <canvas id="preview" width="480" height="240"></canvas>
+</div>
+
+<button class="btn btn-acc" id="openExport">Export to GIF</button>
+</div><!-- /paneAnim -->
+
+<!-- MODAL EKSPORTU -->
+<div class="overlay" id="exportModal">
+  <div class="modal">
+    <h2>GIF settings</h2>
+    <label class="lab">Duration</label>
+    <div class="opt-row" id="durRow">
+      <button class="opt" data-v="3">3 s</button>
+      <button class="opt on" data-v="4">4 s</button>
+      <button class="opt" data-v="5">5 s</button>
+    </div>
+    <label class="lab">Width</label>
+    <div class="opt-row" id="resRow">
+      <button class="opt" data-v="300">300 px</button>
+      <button class="opt on" data-v="400">400 px</button>
+      <button class="opt" data-v="500">500 px</button>
+    </div>
+    <label class="lab">Smoothness — frames per second: <span id="fpsVal" style="color:var(--acc)">15</span></label>
+    <input type="range" id="fpsSlider" min="3" max="15" step="3" value="15" style="margin-bottom:14px">
+    <button class="btn btn-acc" id="genBtn">Generate</button>
+    <div class="row2"><button class="btn btn-ghost" id="closeExport">Cancel</button></div>
+  </div>
+</div>
+
+<!-- MODAL PODGLADU -->
+<div class="overlay" id="previewModal">
+  <div class="modal">
+    <h2>Twoj GIF</h2>
+    <img id="gifView" alt="GIF preview">
+    <div class="prog hidden" id="progWrap"><div id="progBar"></div></div>
+    <div class="stat" id="gifStat"></div>
+    <div class="row2">
+      <button class="btn btn-pink" id="saveBtn">Save GIF</button>
+      <button class="btn btn-ghost" id="againBtn">One more time</button>
+    </div>
+    <div class="row2"><button class="btn btn-ghost" id="backBtn">← Back to editing</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ STAN + localStorage ============ */
+const LS="glitchtext.mapp.v1";
+const state={text:"GLITCH",style:"rgb",intensity:50,bg:"solid",dur:4,res:400,fps:"max",seed:(Math.random()*1e9)|0,
+  tab:"static",stText:"GLITCH",stStyle:"zalgo",stIntensity:40,stSeed:(Math.random()*1e9)|0,fpsN:15};
+try{Object.assign(state,JSON.parse(localStorage.getItem(LS)||"{}"));}catch(e){}
+function save(){localStorage.setItem(LS,JSON.stringify(state));}
+
+/* ============ RNG seedowany (do "One more time") ============ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ============ RENDEROWANIE ============ */
+const GLYPHS="!<>-_\\/[]{}=+*^?#@%&$\u00A7\u039E\u0394\u03A8\u03A9\u30A2\u30AB\u30B5\u30BF\u30CA0123456789";
+function scrambleText(txt,rng,amount){
+  return [...txt].map(c=>{
+    if(c===" "||c==="\n")return c;
+    return rng()<amount?GLYPHS[(rng()*GLYPHS.length)|0]:c;
+  }).join("");
+}
+function drawBackground(ctx,W,H,t,bg){
+  if(bg==="grad"){
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,"#0f2027");g.addColorStop(.5,"#203a43");g.addColorStop(1,"#2c5364");
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  }else if(bg==="pulse"){
+    const p=.5+.5*Math.sin(t*6);
+    ctx.fillStyle="rgb("+((14+p*26)|0)+","+((6+p*8)|0)+","+((20+p*34)|0)+")";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="rgba(255,61,127,"+(.05+p*.08)+")";
+    for(let y=0;y<H;y+=Math.max(8,(H/18)|0))ctx.fillRect(0,y,W,2);
+  }else{
+    ctx.fillStyle="#0a0a0f";ctx.fillRect(0,0,W,H);
+  }
+}
+function fitText(ctx,text,W,H,maxHFrac){
+  const lines=text.split("\n").slice(0,4);
+  let size=Math.min(H*maxHFrac,W/3);
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  for(;;){
+    ctx.font="900 "+size+"px -apple-system,'Segoe UI',Arial,sans-serif";
+    let maxW=0;for(const l of lines)maxW=Math.max(maxW,ctx.measureText(l||" ").width);
+    if((maxW<=W*.88&&size*lines.length<=H*.86)||size<10)break;
+    size*=.94;
+  }
+  return {size:size,lines:lines,lineH:size*1.12};
+}
+function drawLines(ctx,lines,W,H,lineH,dy){
+  const y0=H/2-(lines.length-1)*lineH/2;
+  for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],W/2,y0+i*lineH+(dy||0));
+}
+function renderFrame(ctx,W,H,t,opts){
+  const text=opts.text,style=opts.style,intensity=opts.intensity,bg=opts.bg,seed=opts.seed;
+  const inten=intensity/100;
+  const rng=mulberry32(seed+((t*60)|0)*7919);
+  drawBackground(ctx,W,H,t,bg);
+  const txt=text.trim()||"GLITCH";
+  const f=fitText(ctx,txt,W,H,.5);
+  ctx.font="900 "+f.size+"px -apple-system,'Segoe UI',Arial,sans-serif";
+
+  if(style==="scramble"){
+    const shown=f.lines.map(l=>scrambleText(l,rng,inten*(.35+.65*Math.abs(Math.sin(t*7)))));
+    ctx.fillStyle="#e8fff9";
+    ctx.shadowColor="#39e6c3";ctx.shadowBlur=f.size*.25;
+    drawLines(ctx,shown,W,H,f.lineH);
+    ctx.shadowBlur=0;
+    return;
+  }
+  const off=renderFrame._buf||(renderFrame._buf=document.createElement("canvas"));
+  off.width=W;off.height=H;
+  const b=off.getContext("2d");
+  b.clearRect(0,0,W,H);
+  b.font=ctx.font;b.textAlign="center";b.textBaseline="middle";
+  b.fillStyle="#f2f6ff";drawLines(b,f.lines,W,H,f.lineH);
+
+  if(style==="rgb"){
+    ctx.save();ctx.globalCompositeOperation="lighter";
+    const dx=inten*W*.03*(.4+.6*Math.abs(Math.sin(t*9+seed)));
+    const cols=["#ff2d55","#39ff88","#2d9bff"];
+    const pool=renderFrame._chans||(renderFrame._chans=[0,1,2].map(()=>document.createElement("canvas")));
+    for(let i=0;i<3;i++){
+      const t2=pool[i];t2.width=W;t2.height=H;
+      const tc=t2.getContext("2d");
+      tc.drawImage(off,0,0);
+      tc.globalCompositeOperation="multiply";tc.fillStyle=cols[i];tc.fillRect(0,0,W,H);
+      tc.globalCompositeOperation="destination-in";tc.drawImage(off,0,0); /* przywroc maske tekstu */
+      ctx.drawImage(t2,(i-1)*dx+(rng()-.5)*inten*12,(rng()-.5)*inten*6);
+    }
+    ctx.restore();
+    const n=2+((inten*6)|0);
+    for(let i=0;i<n;i++){
+      const y=(rng()*H)|0,h=4+rng()*H*.06,s=(rng()-.5)*inten*W*.12;
+      ctx.drawImage(ctx.canvas,0,y,W,h,s,y,W,h);
+    }
+  }
+  else if(style==="slice"){
+    ctx.drawImage(off,0,0);
+    const n=4+((inten*14)|0);
+    for(let i=0;i<n;i++){
+      const y=(rng()*H)|0,h=(2+rng()*H*.08)|0,s=(rng()-.5)*2*inten*W*.18;
+      ctx.drawImage(off,0,y,W,h,s,y,W,h);
+    }
+    if(rng()<inten*.5){
+      ctx.globalAlpha=.25;
+      ctx.fillStyle=rng()<.5?"#ff3d7f":"#39e6c3";
+      ctx.fillRect(0,rng()*H,W,3+rng()*10);
+      ctx.globalAlpha=1;
+    }
+  }
+  else{ /* blocks */
+    ctx.drawImage(off,0,0);
+    const n=3+((inten*10)|0);
+    for(let i=0;i<n;i++){
+      const bw=(W*(.06+rng()*.25))|0,bh=(H*(.04+rng()*.18))|0;
+      const x=(rng()*(W-bw))|0,y=(rng()*(H-bh))|0;
+      const sx=(rng()-.5)*inten*W*.15,sy=(rng()-.5)*inten*H*.1;
+      ctx.drawImage(ctx.canvas,x,y,bw,bh,x+sx,y+sy,bw,bh);
+      if(rng()<inten*.6){
+        ctx.globalAlpha=.55;
+        ctx.fillStyle=["#ff3d7f","#39e6c3","#ffd23d","#2d9bff"][(rng()*4)|0];
+        ctx.fillRect(x+(rng()-.5)*20,y+(rng()-.5)*12,bw*(.3+rng()*.5),2+rng()*bh*.3);
+        ctx.globalAlpha=1;
+      }
+    }
+  }
+}
+
+/* ============ PODGLAD NA ZYWO ============ */
+const pv=document.getElementById("preview"),pctx=pv.getContext("2d");
+let t0=performance.now();
+(function loop(now){
+  const t=((now-t0)/1000)%4;
+  renderFrame(pctx,pv.width,pv.height,t,state);
+  requestAnimationFrame(loop);
+})(t0);
+
+/* ============ STATYCZNY GLITCH TEXT (Unicode, do skopiowania) ============ */
+function range(a,b){const r=[];for(let i=a;i<=b;i++)r.push(String.fromCharCode(i));return r;}
+const Z_UP=[...range(0x0300,0x0314),...range(0x033D,0x0344),...range(0x034A,0x034C),...range(0x0350,0x0352),String.fromCharCode(0x0357),...range(0x0363,0x036F)];
+const Z_MID=[String.fromCharCode(0x0315),String.fromCharCode(0x031B),...range(0x0334,0x0338),String.fromCharCode(0x034F)];
+const Z_DOWN=[...range(0x0316,0x0333),...range(0x0339,0x033C),String.fromCharCode(0x0345),...range(0x0347,0x0349),...range(0x034D,0x034E),...range(0x0353,0x0356),...range(0x0359,0x035A)];
+const LOOK={a:["à","á","â","ä","ã","å","ā","ă","ą","ȁ","ȃ","ɑ"],b:["ƀ","ɓ","ƃ","ᵬ"],c:["ç","ć","ĉ","ċ","č","ȼ"],d:["ď","đ","ɗ","ƌ","ȡ"],e:["è","é","ê","ë","ē","ĕ","ė","ę","ě","ȅ","ȇ"],f:["ƒ","ᶂ"],g:["ĝ","ğ","ġ","ģ","ǥ","ɠ"],h:["ĥ","ħ","ɦ","ẖ"],i:["ì","í","î","ï","ĩ","ī","ĭ","į","ı","ȉ","ȋ"],j:["ĵ","ǰ","ɉ"],k:["ķ","ĸ","ƙ"],l:["ĺ","ļ","ľ","ŀ","ł","ȴ"],m:["ɱ","ᵯ"],n:["ñ","ń","ņ","ň","ŉ","ŋ","ɲ"],o:["ò","ó","ô","ö","õ","ø","ō","ŏ","ő","ȍ","ȏ","ɵ"],p:["ƥ","ᵽ"],q:["ʠ"],r:["ŕ","ŗ","ř","ȑ","ȓ","ɍ"],s:["ś","ŝ","ş","š","ș","ʂ"],t:["ţ","ť","ŧ","ț","ʈ"],u:["ù","ú","û","ü","ũ","ū","ŭ","ů","ű","ų","ȕ","ȗ"],v:["ʋ","ⱱ"],w:["ŵ","ⱳ"],x:["ẋ","ẍ"],y:["ý","ÿ","ŷ","ƴ","ȳ"],z:["ź","ż","ž","ʐ"],A:["À","Á","Â","Ä","Ã","Å","Ā","Ă","Ą","Ȁ","Ȃ"],B:["Ƀ","Ɓ","Ƃ"],C:["Ç","Ć","Ĉ","Ċ","Č"],D:["Ď","Đ","Ɗ"],E:["È","É","Ê","Ë","Ē","Ĕ","Ė","Ę","Ě","Ȅ","Ȇ"],F:["Ƒ"],G:["Ĝ","Ğ","Ġ","Ģ","Ǥ"],H:["Ĥ","Ħ"],I:["Ì","Í","Î","Ï","Ĩ","Ī","Ĭ","Į","İ","Ȉ","Ȋ"],J:["Ĵ"],K:["Ķ","Ƙ"],L:["Ĺ","Ļ","Ľ","Ŀ","Ł"],M:["Ɱ"],N:["Ñ","Ń","Ņ","Ň","Ŋ"],O:["Ò","Ó","Ô","Ö","Õ","Ø","Ō","Ŏ","Ő","Ȍ","Ȏ"],P:["Ƥ"],Q:["Ɋ"],R:["Ŕ","Ŗ","Ř","Ȑ","Ȓ"],S:["Ś","Ŝ","Ş","Š","Ș"],T:["Ţ","Ť","Ŧ","Ț"],U:["Ù","Ú","Û","Ü","Ũ","Ū","Ŭ","Ů","Ű","Ų","Ȕ","Ȗ"],V:["Ʋ"],W:["Ŵ"],X:["Ẋ","Ẍ"],Y:["Ý","Ŷ","Ÿ","Ƴ","Ȳ"],Z:["Ź","Ż","Ž"]};
+function pick(arr,rng){return arr[(rng()*arr.length)|0];}
+function glitchStatic(text,style,inten,seed){
+  const rng=mulberry32(seed);
+  const out=[];
+  for(const ch of text){
+    if(ch===" "||ch==="\n"){out.push(ch);continue;}
+    if(style==="look"){
+      const opts=LOOK[ch];
+      if(opts&&rng()<inten*.9)out.push(pick(opts,rng));else out.push(ch);
+    }else if(style==="strike"){
+      out.push(ch);
+      if(rng()<inten)out.push(String.fromCharCode(0x0336));
+      if(rng()<inten*.35)out.push(pick(Z_DOWN,rng));
+      if(rng()<inten*.35)out.push(pick(Z_UP,rng));
+    }else{ /* zalgo */
+      out.push(ch);
+      const n=1+((rng()*inten*6)|0);
+      for(let i=0;i<n;i++){
+        const r=rng();
+        if(r<.42)out.push(pick(Z_UP,rng));
+        else if(r<.84)out.push(pick(Z_DOWN,rng));
+        else out.push(pick(Z_MID,rng));
+      }
+    }
+  }
+  return out.join("");
+}
+function renderStatic(){
+  $("out").textContent=glitchStatic(state.stText,state.stStyle,state.stIntensity/100,state.stSeed);
+}
+
+/* ============ MINI ENKODER GIF (czysty JS, inline) ============ */
+const PAL=new Uint8Array(768);
+(function(){let p=0;
+  for(let r=0;r<6;r++)for(let g=0;g<6;g++)for(let b=0;b<6;b++){PAL[p++]=r*51;PAL[p++]=g*51;PAL[p++]=b*51;}
+  for(let i=0;i<40;i++){const v=Math.round(i*255/39);PAL[p++]=v;PAL[p++]=v;PAL[p++]=v;}
+})();
+function quantize(img){
+  const w=img.width,h=img.height,d=img.data,n=w*h;
+  const rs=new Float32Array(n),gs=new Float32Array(n),bs=new Float32Array(n);
+  for(let i=0;i<n;i++){rs[i]=d[i*4];gs[i]=d[i*4+1];bs[i]=d[i*4+2];}
+  const idx=new Uint8Array(n);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=y*w+x;
+    const r=Math.max(0,Math.min(255,rs[i])),g=Math.max(0,Math.min(255,gs[i])),b=Math.max(0,Math.min(255,bs[i]));
+    let best,cr,cg,cb;
+    if(Math.abs(r-g)<10&&Math.abs(g-b)<10){
+      const k=Math.round(r*39/255);cr=cg=cb=Math.round(k*255/39);best=216+k;
+    }else{
+      const ri=Math.round(r/51),gi=Math.round(g/51),bi=Math.round(b/51);
+      cr=ri*51;cg=gi*51;cb=bi*51;best=ri*36+gi*6+bi;
+    }
+    idx[i]=best;
+    const er=r-cr,eg=g-cg,eb=b-cb,q=.5;
+    if(x+1<w){rs[i+1]+=er*7/16*q;gs[i+1]+=eg*7/16*q;bs[i+1]+=eb*7/16*q;}
+    if(y+1<h){
+      if(x>0){rs[i+w-1]+=er*3/16*q;gs[i+w-1]+=eg*3/16*q;bs[i+w-1]+=eb*3/16*q;}
+      rs[i+w]+=er*5/16*q;gs[i+w]+=eg*5/16*q;bs[i+w]+=eb*5/16*q;
+      if(x+1<w){rs[i+w+1]+=er/16*q;gs[i+w+1]+=eg/16*q;bs[i+w+1]+=eb/16*q;}
+    }
+  }
+  return idx;
+}
+function lzwEncode(indices,minCode){
+  const out=[];let cur=0,bits=0;
+  const clear=1<<minCode,eoi=clear+1;
+  let codeSize=minCode+1,next=eoi+1;
+  let dict=new Map();
+  function emit(c){cur|=c<<bits;bits+=codeSize;
+    while(bits>=8){out.push(cur&255);cur>>=8;bits-=8;}}
+  emit(clear);
+  let prev=indices[0];
+  for(let i=1;i<indices.length;i++){
+    const k=indices[i],key=(prev<<8)|k;
+    const code=dict.get(key);
+    if(code!==undefined){prev=code;}
+    else{
+      emit(prev);
+      dict.set(key,next++);
+      if(next===(1<<codeSize)+1){
+        if(codeSize<12)codeSize++;
+        else{emit(clear);dict=new Map();next=eoi+1;codeSize=minCode+1;}
+      }
+      prev=k;
+    }
+  }
+  emit(prev);emit(eoi);
+  if(bits>0)out.push(cur&255);
+  return out;
+}
+function encodeGIF(frames,W,H){
+  const bytes=[];
+  const push=function(){for(let i=0;i<arguments.length;i++)bytes.push(arguments[i]);};
+  const str=s=>{for(const c of s)bytes.push(c.charCodeAt(0));};
+  str("GIF89a");
+  push(W&255,W>>8,H&255,H>>8,0xF7,0,0);
+  for(let i=0;i<768;i++)bytes.push(PAL[i]);
+  push(0x21,0xFF,11);str("NETSCAPE2.0");push(3,1,0,0,0);
+  for(const f of frames){
+    const dl=Math.round(f.delay*100);
+    push(0x21,0xF9,4,0x04,dl&255,(dl>>8)&255,0,0);
+    bytes.push(0x2C);push(0,0,0,0,W&255,W>>8,H&255,H>>8,0);
+    bytes.push(8);
+    const data=lzwEncode(f.idx,8);
+    for(let p=0;p<data.length;p+=255){
+      const len=Math.min(255,data.length-p);bytes.push(len);
+      for(let j=0;j<len;j++)bytes.push(data[p+j]);
+    }
+    bytes.push(0);
+  }
+  bytes.push(0x3B);
+  return new Blob([new Uint8Array(bytes)],{type:"image/gif"});
+}
+
+/* ============ GENEROWANIE ============ */
+let gifBlob=null,gifUrl=null;
+const $=id=>document.getElementById(id);
+async function generate(){
+  const W=state.res,H=Math.round(W/2),dur=state.dur;
+  /* kompatybilnosc: stare wartosci "max"/"low" -> 15/6 fps */
+  const fpsN=state.fpsN||(state.fps==="low"?6:15);
+  const step=1/fpsN;
+  const total=Math.round(dur/step);
+  $("exportModal").classList.remove("show");
+  $("previewModal").classList.add("show");
+  $("progWrap").classList.remove("hidden");
+  $("gifView").classList.add("hidden");
+  $("saveBtn").classList.add("hidden");
+  $("againBtn").classList.add("hidden");
+  $("gifStat").textContent="Rendering frames...";
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const cx=cv.getContext("2d",{willReadFrequently:true});
+  const frames=[];
+  for(let i=0;i<total;i++){
+    renderFrame(cx,W,H,i*step,state);
+    frames.push({idx:quantize(cx.getImageData(0,0,W,H)),delay:step});
+    $("progBar").style.width=((i+1)/total*70)+"%";
+    $("gifStat").textContent="Frame "+(i+1)+"/"+total;
+    await new Promise(r=>setTimeout(r,0));
+  }
+  $("gifStat").textContent="Encoding GIF...";
+  await new Promise(r=>setTimeout(r,30));
+  gifBlob=encodeGIF(frames,W,H);
+  if(gifUrl)URL.revokeObjectURL(gifUrl);
+  gifUrl=URL.createObjectURL(gifBlob);
+  $("progBar").style.width="100%";
+  $("gifView").src=gifUrl;
+  $("gifView").classList.remove("hidden");
+  $("progWrap").classList.add("hidden");
+  $("saveBtn").classList.remove("hidden");
+  $("againBtn").classList.remove("hidden");
+  $("gifStat").textContent=W+"x"+H+" | "+dur+"s | "+total+" frames | "+(gifBlob.size/1024).toFixed(0)+" KB";
+}
+
+/* ============ UI ============ */
+function bindOpts(rowId,key,parse){
+  $(rowId).addEventListener("click",e=>{
+    const b=e.target.closest(".opt");if(!b)return;
+    const all=$(rowId).querySelectorAll(".opt");
+    for(const x of all)x.classList.remove("on");
+    b.classList.add("on");state[key]=parse?parse(b.dataset.v):b.dataset.v;save();
+  });
+}
+bindOpts("durRow","dur",Number);bindOpts("resRow","res",Number);
+$("fpsSlider").addEventListener("input",e=>{
+  state.fpsN=+e.target.value;$("fpsVal").textContent=state.fpsN;save();
+});
+$("styles").addEventListener("click",e=>{
+  const b=e.target.closest(".style-btn");if(!b)return;
+  const all=document.querySelectorAll(".style-btn");
+  for(const x of all)x.classList.remove("on");
+  b.classList.add("on");state.style=b.dataset.s;save();
+});
+$("bgs").addEventListener("click",e=>{
+  const b=e.target.closest(".bg-btn");if(!b)return;
+  const all=document.querySelectorAll(".bg-btn");
+  for(const x of all)x.classList.remove("on");
+  b.classList.add("on");state.bg=b.dataset.b;save();
+});
+$("txt").addEventListener("input",e=>{state.text=e.target.value;save();});
+$("intensity").addEventListener("input",e=>{
+  state.intensity=+e.target.value;$("intVal").textContent=state.intensity+"%";save();
+});
+$("openExport").onclick=()=>$("exportModal").classList.add("show");
+$("closeExport").onclick=()=>$("exportModal").classList.remove("show");
+$("genBtn").onclick=generate;
+$("againBtn").onclick=()=>{state.seed=(Math.random()*1e9)|0;save();generate();};
+$("backBtn").onclick=()=>$("previewModal").classList.remove("show");
+$("saveBtn").onclick=()=>{
+  const a=document.createElement("a");
+  a.href=gifUrl;a.download="glitchtext-"+Date.now()+".gif";
+  document.body.appendChild(a);a.click();a.remove();
+};
+/* zakladki */
+function switchTab(t){
+  state.tab=t;save();
+  $("tabStaticBtn").classList.toggle("on",t==="static");
+  $("tabAnimBtn").classList.toggle("on",t==="anim");
+  $("paneStatic").classList.toggle("hidden",t!=="static");
+  $("paneAnim").classList.toggle("hidden",t!=="anim");
+}
+$("tabStaticBtn").onclick=()=>switchTab("static");
+$("tabAnimBtn").onclick=()=>switchTab("anim");
+/* statyczny glitch — UI */
+$("stTxt").addEventListener("input",e=>{state.stText=e.target.value;save();renderStatic();});
+$("stIntensity").addEventListener("input",e=>{
+  state.stIntensity=+e.target.value;$("stIntVal").textContent=state.stIntensity+"%";save();renderStatic();
+});
+$("stStyles").addEventListener("click",e=>{
+  const b=e.target.closest(".style-btn");if(!b)return;
+  document.querySelectorAll("#stStyles .style-btn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");state.stStyle=b.dataset.s;save();renderStatic();
+});
+$("rerollBtn").onclick=()=>{state.stSeed=(Math.random()*1e9)|0;save();renderStatic();};
+$("copyBtn").onclick=async()=>{
+  const val=$("out").textContent;
+  try{await navigator.clipboard.writeText(val);}
+  catch(e){
+    const ta=document.createElement("textarea");ta.value=val;document.body.appendChild(ta);
+    ta.select();document.execCommand("copy");ta.remove();
+  }
+  const btn=$("copyBtn"),old=btn.textContent;
+  btn.textContent="Copied ✓";btn.classList.add("copied");
+  setTimeout(()=>{btn.textContent=old;btn.classList.remove("copied");},1400);
+};
+(function init(){
+  $("txt").value=state.text;
+  $("stTxt").value=state.stText;
+  $("stIntensity").value=state.stIntensity;$("stIntVal").textContent=state.stIntensity+"%";
+  document.querySelectorAll("#stStyles .style-btn").forEach(x=>x.classList.toggle("on",x.dataset.s===state.stStyle));
+  switchTab(state.tab==="anim"?"anim":"static");
+  renderStatic();
+  $("intensity").value=state.intensity;$("intVal").textContent=state.intensity+"%";
+  document.querySelectorAll(".style-btn").forEach(x=>x.classList.toggle("on",x.dataset.s===state.style));
+  document.querySelectorAll(".bg-btn").forEach(x=>x.classList.toggle("on",x.dataset.b===state.bg));
+  const mark=(id,val)=>document.querySelectorAll("#"+id+" .opt").forEach(x=>x.classList.toggle("on",x.dataset.v==val));
+  mark("durRow",state.dur);mark("resRow",state.res);
+  const fpsInit=state.fpsN||(state.fps==="low"?6:15);
+  $("fpsSlider").value=fpsInit;$("fpsVal").textContent=fpsInit;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "id": "glitch-text",
+  "name": "GlitchText",
+  "description": "Turn any text into glitch art: copy-paste Unicode glitch text for chats (zalgo, lookalikes, strikethrough) or export a looped animated GIF. 4 styles, intensity control, built-in GIF encoder — 100% offline, single file.",
+  "author": "natzomito",
+  "version": "1.0",
+  "tags": [
+    "fun",
+    "text",
+    "gif",
+    "art"
+  ],
+  "languages": [
+    "pl",
+    "en"
+  ],
+  "network": false,
+  "translationWanted": []
+}

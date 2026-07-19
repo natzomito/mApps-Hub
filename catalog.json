@@ -1,6 +1,6 @@
 {
   "mappsHub": 1,
-  "updated": "2026-07-18",
+  "updated": "2026-07-19",
   "apps": [
     {
       "id": "med-schedule",
@@ -45,7 +45,7 @@
       "name": "Royal Game of Ur",
       "description": "The 4,600-year-old Mesopotamian race game, playable against an AI opponent. Irving Finkel's reconstruction: 7 pieces, binary dice, rosettes and captures.",
       "author": "borzast",
-      "version": "1.0",
+      "version": "1.1",
       "tags": [
         "game",
         "history",
@@ -58,6 +58,26 @@
       "network": false,
       "translationWanted": [],
       "path": "apps/royal-game-of-ur"
+    },
+    {
+      "id": "glitch-text",
+      "name": "GlitchText",
+      "description": "Turn any text into glitch art: copy-paste Unicode glitch text for chats (zalgo, lookalikes, strikethrough) or export a looped animated GIF. 4 styles, intensity control, built-in GIF encoder — 100% offline, single file.",
+      "author": "natzomito",
+      "version": "1.0",
+      "tags": [
+        "fun",
+        "text",
+        "gif",
+        "art"
+      ],
+      "languages": [
+        "pl",
+        "en"
+      ],
+      "network": false,
+      "translationWanted": [],
+      "path": "apps/glitch-text"
     }
   ]
 }
