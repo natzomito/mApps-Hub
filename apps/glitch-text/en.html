@@ -195,9 +195,18 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 
 /* ============ RENDEROWANIE ============ */
 const GLYPHS="!<>-_\\/[]{}=+*^?#@%&$\u00A7\u039E\u0394\u03A8\u03A9\u30A2\u30AB\u30B5\u30BF\u30CA0123456789";
+/* emoji przepuszczamy bez zmian — znaki laczone (zalgo) i podmiany psuja emoji,
+   zwlaszcza sekwencje ZWJ (np. emoji rodzinne rozpadaja sie na kawalki) */
+const EMOJI_RE=/\p{Extended_Pictographic}/u;
+function isEmojiPart(c,joinNext){
+  if(joinNext)return true;
+  return EMOJI_RE.test(c)||c==="\uFE0F"||c==="\u200D"||(c>="\uD83C\uDFFB"&&c<="\uD83C\uDFFF");
+}
 function scrambleText(txt,rng,amount){
+  let joinNext=false;
   return [...txt].map(c=>{
     if(c===" "||c==="\n")return c;
+    if(isEmojiPart(c,joinNext)){joinNext=(c==="\u200D");return c;}
     return rng()<amount?GLYPHS[(rng()*GLYPHS.length)|0]:c;
   }).join("");
 }
@@ -327,8 +336,10 @@ function pick(arr,rng){return arr[(rng()*arr.length)|0];}
 function glitchStatic(text,style,inten,seed){
   const rng=mulberry32(seed);
   const out=[];
+  let joinNext=false;
   for(const ch of text){
     if(ch===" "||ch==="\n"){out.push(ch);continue;}
+    if(isEmojiPart(ch,joinNext)){out.push(ch);joinNext=(ch==="\u200D");continue;}
     if(style==="look"){
       const opts=LOOK[ch];
       if(opts&&rng()<inten*.9)out.push(pick(opts,rng));else out.push(ch);
