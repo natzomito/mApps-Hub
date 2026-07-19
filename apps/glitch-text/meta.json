@@ -1,7 +1,10 @@
 {
   "id": "glitch-text",
   "name": "GlitchText",
-  "description": "Turn any text into glitch art: copy-paste Unicode glitch text for chats (zalgo, lookalikes, strikethrough) or export a looped animated GIF. 4 styles, intensity control, built-in GIF encoder — 100% offline, single file.",
+  "description": {
+    "en": "Turn any text into glitch art: copy-paste Unicode glitch text for chats (zalgo, lookalikes, strikethrough) or export a looped animated GIF. 4 styles, intensity control, built-in GIF encoder — 100% offline, single file.",
+    "pl": "Zamień dowolny tekst w glitch art: tekst Unicode do wklejenia na czacie (zalgo, zamienniki liter, przekreślenia) albo eksport zapętlonego animowanego GIF-a. 4 style, regulacja intensywności, wbudowany koder GIF — w 100% offline, jeden plik."
+  },
   "author": "natzomito",
   "version": "1.0",
   "tags": [
