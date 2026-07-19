@@ -109,6 +109,11 @@
 <!-- ZAKLADKA: ANIMOWANE -->
 <div id="paneAnim" class="hidden">
 <div class="card">
+  <label class="lab">Live preview</label>
+  <canvas id="preview" width="480" height="240"></canvas>
+</div>
+
+<div class="card">
   <label class="lab" for="txt">Text</label>
   <textarea id="txt" rows="2" maxlength="120" placeholder="Type something…">GLITCH</textarea>
 </div>
@@ -132,11 +137,6 @@
     <button class="bg-btn bg-grad" data-b="grad">Gradient</button>
     <button class="bg-btn bg-pulse" data-b="pulse">Pulse</button>
   </div>
-</div>
-
-<div class="card">
-  <label class="lab">Live preview</label>
-  <canvas id="preview" width="480" height="240"></canvas>
 </div>
 
 <button class="btn btn-acc" id="openExport">Export to GIF</button>
@@ -203,10 +203,9 @@ function isEmojiPart(c,joinNext){
   return EMOJI_RE.test(c)||c==="\uFE0F"||c==="\u200D"||(c>="\uD83C\uDFFB"&&c<="\uD83C\uDFFF");
 }
 function scrambleText(txt,rng,amount){
-  let joinNext=false;
+  /* w animatorze emoji tez sie glitchuja — zamieniamy na glify jak kazdy znak */
   return [...txt].map(c=>{
     if(c===" "||c==="\n")return c;
-    if(isEmojiPart(c,joinNext)){joinNext=(c==="\u200D");return c;}
     return rng()<amount?GLYPHS[(rng()*GLYPHS.length)|0]:c;
   }).join("");
 }
@@ -237,9 +236,33 @@ function fitText(ctx,text,W,H,maxHFrac){
   }
   return {size:size,lines:lines,lineH:size*1.12};
 }
+/* pomiar szerokosci przez DOM — canvas measureText na iOS zle mierzy emoji
+   i centrowanie ucieka w prawo */
+const _measEl=(()=>{const s=document.createElement("span");
+  s.style.cssText="position:absolute;visibility:hidden;white-space:pre;left:-9999px;top:0";
+  document.body.appendChild(s);return s;})();
+const _measCache=new Map();
+function domWidth(line,font){
+  const key=font+"|"+line;
+  let w=_measCache.get(key);
+  if(w===undefined){
+    _measEl.style.font=font;_measEl.textContent=line;
+    w=_measEl.getBoundingClientRect().width;
+    if(_measCache.size>500)_measCache.clear();
+    _measCache.set(key,w);
+  }
+  return w;
+}
 function drawLines(ctx,lines,W,H,lineH,dy){
   const y0=H/2-(lines.length-1)*lineH/2;
-  for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],W/2,y0+i*lineH+(dy||0));
+  const prevAlign=ctx.textAlign;
+  ctx.textAlign="left";
+  for(let i=0;i<lines.length;i++){
+    const l=lines[i];
+    const w=domWidth(l||" ",ctx.font);
+    ctx.fillText(l,(W-w)/2,y0+i*lineH+(dy||0));
+  }
+  ctx.textAlign=prevAlign;
 }
 function renderFrame(ctx,W,H,t,opts){
   const text=opts.text,style=opts.style,intensity=opts.intensity,bg=opts.bg,seed=opts.seed;
