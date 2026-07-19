@@ -5,7 +5,10 @@
     {
       "id": "med-schedule",
       "name": "Med Schedule",
-      "description": "Enter your medications and dosing schedule, get an .ics calendar file with daily reminders. 100% on-device — no data ever leaves your phone.",
+      "description": {
+        "en": "Enter your medications and dosing schedule, get an .ics calendar file with daily reminders. 100% on-device — no data ever leaves your phone.",
+        "pl": "Wpisz leki i schemat dawkowania, dostaniesz plik kalendarza .ics z codziennymi przypomnieniami. Wszystko liczy się na telefonie — żadne dane nigdzie nie wychodzą."
+      },
       "author": "borzast",
       "version": "1.0",
       "tags": [
@@ -24,7 +27,10 @@
     {
       "id": "morse",
       "name": "Morse",
-      "description": "Learn Morse code by ear with the Koch method, browse the alphabet, and translate text to Morse with real audio playback (WebAudio, 8-25 WPM).",
+      "description": {
+        "en": "Learn Morse code by ear with the Koch method, browse the alphabet, and translate text to Morse with real audio playback (WebAudio, 8-25 WPM).",
+        "pl": "Naucz się kodu Morse'a ze słuchu metodą Kocha, przeglądaj alfabet i tłumacz tekst na kod Morse'a z prawdziwym odtwarzaniem dźwięku (WebAudio, 8-25 WPM)."
+      },
       "author": "borzast",
       "version": "1.0",
       "tags": [
@@ -43,7 +49,10 @@
     {
       "id": "royal-game-of-ur",
       "name": "Royal Game of Ur",
-      "description": "The 4,600-year-old Mesopotamian race game, playable against an AI opponent. Irving Finkel's reconstruction: 7 pieces, binary dice, rosettes and captures.",
+      "description": {
+        "en": "The 4,600-year-old Mesopotamian race game, playable against an AI opponent. Irving Finkel's reconstruction: 7 pieces, binary dice, rosettes and captures.",
+        "pl": "Licząca 4600 lat mezopotamska gra wyścigowa, grywalna przeciwko AI. Rekonstrukcja Irvinga Finkela: 7 pionów, kości dwuścienne, rozety i zbicia."
+      },
       "author": "borzast",
       "version": "1.1",
       "tags": [
@@ -62,7 +71,10 @@
     {
       "id": "glitch-text",
       "name": "GlitchText",
-      "description": "Turn any text into glitch art: copy-paste Unicode glitch text for chats (zalgo, lookalikes, strikethrough) or export a looped animated GIF. 4 styles, intensity control, built-in GIF encoder — 100% offline, single file.",
+      "description": {
+        "en": "Turn any text into glitch art: copy-paste Unicode glitch text for chats (zalgo, lookalikes, strikethrough) or export a looped animated GIF. 4 styles, intensity control, built-in GIF encoder — 100% offline, single file.",
+        "pl": "Zamień dowolny tekst w glitch art: tekst Unicode do wklejenia na czacie (zalgo, zamienniki liter, przekreślenia) albo eksport zapętlonego animowanego GIF-a. 4 style, regulacja intensywności, wbudowany koder GIF — w 100% offline, jeden plik."
+      },
       "author": "natzomito",
       "version": "1.0",
       "tags": [

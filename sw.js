@@ -1,7 +1,7 @@
 /* mApps Hub — service worker v3
    Strategia: network-first z zapasem z cache.
    Online: zawsze świeża wersja z repo. Offline: ostatnia pobrana kopia. */
-const CACHE = "mappshub-v4";
+const CACHE = "mappshub-v6";
 const ASSETS = ["./", "./index.html", "./icon.png", "./manifest.webmanifest"];
 
 self.addEventListener("install", e => {

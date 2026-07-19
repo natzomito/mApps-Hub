@@ -17,6 +17,7 @@ On Android, open the same URL in Chrome and use "Install app" / "Add to Home scr
 ## Use it
 
 - **+** adds an app: paste HTML code or pick a file from your phone. Set a custom icon from your photo gallery, or let the Hub generate one from the first letter.
+- **🔲 (QR icon, top left)** opens a share sheet with a QR code and a copy-link button — generated entirely on-device (a small vendored open-source library, no external service), so anyone can scan or paste the link to install the Hub themselves. Includes step-by-step "Add to Home Screen" instructions for both iOS and Android.
 - **🧭 (compass icon, top left)** opens the **Discover** catalog — browse every mApp published in this repo and tap **Install** to add it straight to your library. No download-and-import needed; the Hub fetches it for you in your language automatically (falls back to English).
 - **Long-press a tile** for actions: pin, hide, edit, allow/block internet, export the HTML, delete.
 - **Settings** → backup all apps and icons to a single JSON file, restore anytime, switch language (English/Polish, auto-detected), check for Hub updates, replay the welcome screen (tap "mApps Hub").
@@ -41,7 +42,7 @@ Import the result into your Hub. That's the whole workflow — an idea to a work
 
 ## Contribute
 
-**Share an app:** open a Pull Request adding a folder under `apps/your-app-id/` with `meta.json` (see existing apps for the format) and at least `en.html`. Rules: single file, no network calls (or declare `"network": true` in meta.json with a reason), no trackers, readable code.
+**Share an app:** open a Pull Request adding a folder under `apps/your-app-id/` with `meta.json` (see existing apps for the format) and at least `en.html`. In `meta.json`, `"description"` can be a single string (shown to everyone) or an object keyed by language — `{"en": "...", "pl": "..."}` — so the Discover catalog shows each person a description in their own language, falling back to English if theirs isn't there. Rules: single file, no network calls (or declare `"network": true` in meta.json with a reason), no trackers, readable code.
 
 **Translate:** copy an app's `en.html`, translate the visible strings (an LLM does this in one prompt: *"translate all user-facing strings in this HTML file to <language>, change nothing else"*), and open a PR adding `<lang>.html`. Apps needing translations are flagged in `meta.json` under `translationWanted`.
 
