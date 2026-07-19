@@ -350,6 +350,39 @@ header.top{
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---------- Ekran powitalny (onboarding) ---------- */
+#onb{
+  position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:none;flex-direction:column;
+  padding:calc(var(--safe-top) + 22px) 26px calc(var(--safe-bottom) + 22px);
+}
+#onb.show{display:flex}
+.onb-slides{flex:1;overflow:hidden;position:relative}
+.onb-slide{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;text-align:center;justify-content:center;gap:16px;
+  padding:0 6px;animation:onbIn .35s ease both;
+}
+.onb-slide.on{display:flex}
+@keyframes onbIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+.onb-emoji{font-size:52px;line-height:1}
+.onb-slide h2{font-size:21px;font-weight:800;letter-spacing:-.01em}
+.onb-slide p{font-size:14.5px;color:var(--muted);line-height:1.6;max-width:340px}
+.onb-slide .tag{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--honey);
+  background:rgba(232,169,61,.1);padding:5px 12px;border-radius:20px;font-weight:600;
+}
+.onb-dots{display:flex;justify-content:center;gap:7px;margin:18px 0 4px}
+.onb-dots span{width:7px;height:7px;border-radius:50%;background:var(--line);transition:all .2s}
+.onb-dots span.on{background:var(--honey);width:20px;border-radius:4px}
+.onb-nav{display:flex;gap:10px}
+.onb-nav .btn-secondary{flex:none;padding:14px 18px}
+.onb-nav .btn-primary{flex:1;margin-top:0}
+.onb-skip{
+  position:absolute;top:calc(var(--safe-top) + 18px);right:22px;
+  font-size:13px;color:var(--muted);padding:8px;z-index:2;
+}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important;transition:none !important}
 }
@@ -536,7 +569,7 @@ header.top{
     </div>
     <span class="badge" id="persistBadge">…</span>
   </div>
-  <div class="settings-row">
+  <div class="settings-row" id="aboutRow" style="cursor:pointer">
     <div>
       mApps Hub
       <div class="sub" data-i18n="about_sub">Wszystko zostaje na tym urządzeniu. Bez kont, bez chmury.</div>
@@ -584,6 +617,50 @@ header.top{
 <input type="file" id="inpHtml" accept=".html,.htm,text/html" style="display:none">
 <input type="file" id="inpBackup" accept=".json,application/json" style="display:none">
 
+<!-- Ekran powitalny -->
+<div id="onb">
+  <button class="onb-skip" id="onbSkip" data-i18n="onb_skip">Pomiń</button>
+  <div class="onb-slides" id="onbSlides">
+
+    <div class="onb-slide on" data-i="0">
+      <div class="onb-emoji">⬡</div>
+      <h2 data-i18n="onb1_t">Witaj w mApps Hub</h2>
+      <p data-i18n="onb1_p">Jedno miejsce na wszystkie Twoje mini-aplikacje HTML. Bez sklepu, bez kont, bez chmury — wszystko zostaje na tym telefonie.</p>
+    </div>
+
+    <div class="onb-slide" data-i="1">
+      <div class="onb-emoji">➕</div>
+      <h2 data-i18n="onb2_t">Dodawaj własne</h2>
+      <p data-i18n="onb2_p">Poproś dowolny LLM o jednoplikową mini-aplikację HTML, wklej kod albo wybierz plik z telefonu. Możesz też ustawić własną ikonę z galerii.</p>
+    </div>
+
+    <div class="onb-slide" data-i="2">
+      <div class="onb-emoji">🔒</div>
+      <h2 data-i18n="onb3_t">Offline z założenia</h2>
+      <p data-i18n="onb3_p">Każda apka startuje z zablokowanym dostępem do sieci — to gwarancja przeglądarki, nie obietnica. Internet włączasz sam, dla pojedynczej apki, tylko gdy jej ufasz.</p>
+      <span class="tag">✕ sieć domyślnie zablokowana</span>
+    </div>
+
+    <div class="onb-slide" data-i="3">
+      <div class="onb-emoji">🧭</div>
+      <h2 data-i18n="onb4_t">Katalog</h2>
+      <p data-i18n="onb4_p">Ikona kompasu w rogu pokazuje aplikacje z publicznego repozytorium mApps-Hub na GitHubie. Jedno dotknięcie „Zainstaluj” i apka ląduje w Twojej bibliotece.</p>
+    </div>
+
+    <div class="onb-slide" data-i="4">
+      <div class="onb-emoji">🤝</div>
+      <h2 data-i18n="onb5_t">To jest otwarty projekt</h2>
+      <p data-i18n="onb5_p">mApps Hub jest w pełni open source (EUPL-1.2) i zawsze będzie darmowy. Masz własną mini-aplikację? Dodaj ją do repo przez Pull Request — inni ją zainstalują jednym dotknięciem.</p>
+    </div>
+
+  </div>
+  <div class="onb-dots" id="onbDots"></div>
+  <div class="onb-nav">
+    <button class="btn-secondary" id="onbBack" style="visibility:hidden" data-i18n="onb_back">Wstecz</button>
+    <button class="btn-primary" id="onbNext" data-i18n="onb_next">Dalej</button>
+  </div>
+</div>
+
 <script>
 "use strict";
 /* ============================================================
@@ -624,7 +701,7 @@ const $ = id => document.getElementById(id);
 /* ============================================================
    Języki
    ============================================================ */
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 const LKEY = "mapps:lang";
 const T = {
   pl: {
@@ -663,7 +740,13 @@ const T = {
     version:"Wersja", version_sub:"Aktualizacja podmienia tylko kod launchera. Twoje aplikacje i dane zostają nietknięte.",
     update:"Aktualizuj",
     c_delete: n => `Usunąć „${n}”? Tej operacji nie można cofnąć.`,
-    c_net: n => `Zezwolić „${n}” na dostęp do internetu? Apka będzie mogła wysyłać i pobierać dane z sieci. Rób to tylko dla kodu, któremu ufasz.`
+    c_net: n => `Zezwolić „${n}” na dostęp do internetu? Apka będzie mogła wysyłać i pobierać dane z sieci. Rób to tylko dla kodu, któremu ufasz.`,
+    onb_skip:"Pomiń", onb_back:"Wstecz", onb_next:"Dalej", onb_start:"Zaczynajmy",
+    onb1_t:"Witaj w mApps Hub", onb1_p:"Jedno miejsce na wszystkie Twoje mini-aplikacje HTML. Bez sklepu, bez kont, bez chmury — wszystko zostaje na tym telefonie.",
+    onb2_t:"Dodawaj własne", onb2_p:"Poproś dowolny LLM o jednoplikową mini-aplikację HTML, wklej kod albo wybierz plik z telefonu. Możesz też ustawić własną ikonę z galerii.",
+    onb3_t:"Offline z założenia", onb3_p:"Każda apka startuje z zablokowanym dostępem do sieci — to gwarancja przeglądarki, nie obietnica. Internet włączasz sam, dla pojedynczej apki, tylko gdy jej ufasz.",
+    onb4_t:"Katalog", onb4_p:"Ikona kompasu w rogu pokazuje aplikacje z publicznego repozytorium mApps-Hub na GitHubie. Jedno dotknięcie „Zainstaluj” i apka ląduje w Twojej bibliotece.",
+    onb5_t:"To jest otwarty projekt", onb5_p:"mApps Hub jest w pełni open source (EUPL-1.2) i zawsze będzie darmowy. Masz własną mini-aplikację? Dodaj ją do repo przez Pull Request — inni ją zainstalują jednym dotknięciem."
   },
   en: {
     search_ph:"Search apps", pinned:"Pinned", library:"Library", hidden:"Hidden",
@@ -701,7 +784,13 @@ const T = {
     version:"Version", version_sub:"Updates replace only the launcher code. Your apps and data stay untouched.",
     update:"Update",
     c_delete: n => `Delete “${n}”? This can't be undone.`,
-    c_net: n => `Allow “${n}” to access the internet? The app will be able to send and fetch data. Do this only for code you trust.`
+    c_net: n => `Allow “${n}” to access the internet? The app will be able to send and fetch data. Do this only for code you trust.`,
+    onb_skip:"Skip", onb_back:"Back", onb_next:"Next", onb_start:"Let's go",
+    onb1_t:"Welcome to mApps Hub", onb1_p:"One place for all your HTML mini-apps. No app store, no accounts, no cloud — everything stays on this phone.",
+    onb2_t:"Add your own", onb2_p:"Ask any LLM for a single-file HTML mini-app, paste the code or pick a file from your phone. You can also set a custom icon from your gallery.",
+    onb3_t:"Offline by design", onb3_p:"Every app starts with network access blocked — that's a browser guarantee, not a promise. You turn internet on yourself, per app, only when you trust it.",
+    onb4_t:"Catalog", onb4_p:"The compass icon in the corner shows apps from the public mApps-Hub repository on GitHub. One tap on “Install” and the app lands in your library.",
+    onb5_t:"This is an open project", onb5_p:"mApps Hub is fully open source (EUPL-1.2) and will always be free. Have your own mini-app? Add it to the repo with a Pull Request — others can install it with one tap."
   }
 };
 let L = (function(){
@@ -1259,10 +1348,72 @@ function toast(msg){
 }
 
 /* ============================================================
+   Ekran powitalny
+   ============================================================ */
+const ONB_KEY = "mapps:onboarded";
+const ONB_SLIDES = document.querySelectorAll(".onb-slide").length;
+let onbIdx = 0;
+
+function buildOnbDots(){
+  const d = $("onbDots");
+  d.textContent = "";
+  for (let i = 0; i < ONB_SLIDES; i++){
+    const s = document.createElement("span");
+    if (i === 0) s.classList.add("on");
+    d.appendChild(s);
+  }
+}
+function showOnbSlide(i){
+  onbIdx = Math.max(0, Math.min(ONB_SLIDES - 1, i));
+  document.querySelectorAll(".onb-slide").forEach(el => el.classList.toggle("on", +el.dataset.i === onbIdx));
+  [...$("onbDots").children].forEach((d, k) => d.classList.toggle("on", k === onbIdx));
+  $("onbBack").style.visibility = onbIdx === 0 ? "hidden" : "visible";
+  $("onbNext").textContent = onbIdx === ONB_SLIDES - 1 ? t("onb_start") : t("onb_next");
+}
+function closeOnboarding(){
+  $("onb").classList.remove("show");
+  try { localStorage.setItem(ONB_KEY, "1"); } catch {}
+}
+function maybeShowOnboarding(){
+  let seen = false;
+  try { seen = localStorage.getItem(ONB_KEY) === "1"; } catch {}
+  if (seen) return;
+  buildOnbDots();
+  showOnbSlide(0);
+  $("onb").classList.add("show");
+}
+$("onbNext").addEventListener("click", () => {
+  if (onbIdx === ONB_SLIDES - 1) closeOnboarding();
+  else showOnbSlide(onbIdx + 1);
+});
+$("onbBack").addEventListener("click", () => showOnbSlide(onbIdx - 1));
+$("onbSkip").addEventListener("click", closeOnboarding);
+$("aboutRow").addEventListener("click", () => {
+  closeSheets();
+  buildOnbDots();
+  showOnbSlide(0);
+  $("onb").classList.add("show");
+});
+// przesuwanie palcem między slajdami
+(function swipeOnb(){
+  let x0 = null;
+  const el = $("onbSlides");
+  el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener("touchend", e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (dx < -40) showOnbSlide(onbIdx + 1);
+    else if (dx > 40) showOnbSlide(onbIdx - 1);
+    x0 = null;
+  });
+})();
+
+/* ============================================================
    Start
    ============================================================ */
 (async function init(){
   applyI18n();
+  maybeShowOnboarding();
   $("langSel").value = L;
   $("langSel").addEventListener("change", () => {
     L = $("langSel").value;

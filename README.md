@@ -17,12 +17,17 @@ On Android, open the same URL in Chrome and use "Install app" / "Add to Home scr
 ## Use it
 
 - **+** adds an app: paste HTML code or pick a file from your phone. Set a custom icon from your photo gallery, or let the Hub generate one from the first letter.
+- **🧭 (compass icon, top left)** opens the **Discover** catalog — browse every mApp published in this repo and tap **Install** to add it straight to your library. No download-and-import needed; the Hub fetches it for you in your language automatically (falls back to English).
 - **Long-press a tile** for actions: pin, hide, edit, allow/block internet, export the HTML, delete.
-- **Settings** → backup all apps and icons to a single JSON file, restore anytime, switch language (English/Polish, auto-detected).
+- **Settings** → backup all apps and icons to a single JSON file, restore anytime, switch language (English/Polish, auto-detected), check for Hub updates, replay the welcome screen (tap "mApps Hub").
+
+First time you open the Hub, a short welcome screen explains all of this — swipe through it or tap Skip.
 
 ## Get apps
 
-Browse the [`apps/`](apps/) folder. Each mApp has a `meta.json` (English description, tags, languages) and one HTML file per language (`en.html`, `pl.html`, …). Open the file for your language, view it, and if you like what you see — download it and import it into your Hub. The code is a single readable HTML file: you can always check exactly what it does before running it.
+Easiest way: open the **Discover** tab in the Hub (compass icon) and tap Install — done in one tap, no browser involved.
+
+Prefer to look before you leap? Browse the [`apps/`](apps/) folder on GitHub instead. Each mApp has a `meta.json` (description, tags, languages) and one HTML file per language (`en.html`, `pl.html`, …). Open the file for your language, read the code, and if you like what you see, either install it from Discover or download the `.html` file and import it manually.
 
 Current catalog: see [`catalog.json`](catalog.json).
 
@@ -56,6 +61,6 @@ mApps to jednoplikowe mini-aplikacje HTML. Hub to launcher, który je wszystkie 
 
 **Domyślnie offline.** Każda zaimportowana apka działa z zablokowanym dostępem do sieci (Content Security Policy egzekwowane przez przeglądarkę) — nie może nigdzie wysłać Twoich danych. Internet włączasz per aplikacja, jawnie, tylko dla zaufanego kodu.
 
-Katalog aplikacji: folder [`apps/`](apps/) — każda ma opis w `meta.json` i wersje językowe (`pl.html`, `en.html`). Chcesz dodać własną apkę albo tłumaczenie? Wystaw Pull Request (szczegóły wyżej, w sekcji Contribute). Chcesz poprosić o tłumaczenie? Załóż Issue.
+Katalog aplikacji: zakładka **Discover** w Hubie (ikona kompasu) — jedno dotknięcie „Zainstaluj" i apka ląduje w bibliotece. Możesz też przejrzeć kod wcześniej w folderze [`apps/`](apps/) na GitHubie. Chcesz dodać własną apkę albo tłumaczenie? Wystaw Pull Request (szczegóły wyżej, w sekcji Contribute). Chcesz poprosić o tłumaczenie? Załóż Issue.
 
 Licencja: EUPL-1.2 — na zawsze otwarte.
