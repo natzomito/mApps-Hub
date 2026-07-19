@@ -1,7 +1,10 @@
 {
   "id": "med-schedule",
   "name": "Med Schedule",
-  "description": "Enter your medications and dosing schedule, get an .ics calendar file with daily reminders. 100% on-device — no data ever leaves your phone.",
+  "description": {
+    "en": "Enter your medications and dosing schedule, get an .ics calendar file with daily reminders. 100% on-device — no data ever leaves your phone.",
+    "pl": "Wpisz leki i schemat dawkowania, dostaniesz plik kalendarza .ics z codziennymi przypomnieniami. Wszystko liczy się na telefonie — żadne dane nigdzie nie wychodzą."
+  },
   "author": "borzast",
   "version": "1.0",
   "tags": [
