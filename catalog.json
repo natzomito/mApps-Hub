@@ -1,6 +1,6 @@
 {
   "mappsHub": 1,
-  "updated": "2026-07-19",
+  "updated": "2026-07-21",
   "apps": [
     {
       "id": "med-schedule",
@@ -90,6 +90,53 @@
       "network": false,
       "translationWanted": [],
       "path": "apps/glitch-text"
+    },
+    {
+      "id": "yt-link-cleaner",
+      "name": "YT Link Cleaner",
+      "description": {
+        "en": "Strips tracking parameters from YouTube links — above all the ?si= tag YouTube adds to every shared link so it can tell who passed it on and where. Paste a link or grab it from the clipboard, get a clean one with Share and Copy buttons. Keeps a local history of your cleaned links (title, short link, full archived link). Cleaning works 100% offline; network is used only to fetch the video title via noembed.com (optional, fails silently).",
+        "pl": "Obcina z linków YouTube parametry śledzące — przede wszystkim ?si=, który YouTube dokleja do każdego udostępnianego linku, żeby wiedzieć, kto i skąd go przekazuje. Wklej link lub pobierz go ze schowka, a dostaniesz czysty z przyciskami Udostępnij i Kopiuj. Zapisuje lokalną historię czyszczonych linków (tytuł, krótki link, pełny link archiwalny). Czyszczenie działa w 100% offline; internet służy tylko do pobrania tytułu filmu przez noembed.com (opcjonalnie, przy braku sieci po cichu pomija)."
+      },
+      "author": "natzomito",
+      "version": "1.0",
+      "tags": [
+        "youtube",
+        "privacy",
+        "links",
+        "tools"
+      ],
+      "languages": [
+        "pl",
+        "en"
+      ],
+      "network": true,
+      "translationWanted": [],
+      "path": "apps/yt-link-cleaner"
+    },
+    {
+      "id": "qr-emoji",
+      "name": "QR Emoji",
+      "description": {
+        "en": "Turn text or a link into a QR code with style: rounded or dotted modules, custom colors, an emoji in the middle, and a caption that wraps around the code (rotatable, auto-sized). Transparent background option, PNG export and system share. 100% offline — QR engine (qrcode-generator, MIT) vendored in the file.",
+        "pl": "Zamień tekst albo link w stylowy kod QR: zaokrąglone lub kropkowane moduły, własne kolory, emoji na środku i podpis owijający się dookoła kodu (obrót suwakiem, auto-dopasowanie). Opcja przezroczystego tła, eksport PNG i systemowe udostępnianie. W 100% offline — silnik QR (qrcode-generator, MIT) dołączony w pliku."
+      },
+      "author": "natzomito",
+      "version": "1.0",
+      "tags": [
+        "qr",
+        "generator",
+        "emoji",
+        "tools",
+        "offline"
+      ],
+      "languages": [
+        "pl",
+        "en"
+      ],
+      "network": false,
+      "translationWanted": [],
+      "path": "apps/qr-emoji"
     }
   ]
 }

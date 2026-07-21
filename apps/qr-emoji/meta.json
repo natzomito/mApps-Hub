@@ -1,0 +1,23 @@
+{
+  "id": "qr-emoji",
+  "name": "QR Emoji",
+  "description": {
+    "en": "Turn text or a link into a QR code with style: rounded or dotted modules, custom colors, an emoji in the middle, and a caption that wraps around the code (rotatable, auto-sized). Transparent background option, PNG export and system share. 100% offline — QR engine (qrcode-generator, MIT) vendored in the file.",
+    "pl": "Zamień tekst albo link w stylowy kod QR: zaokrąglone lub kropkowane moduły, własne kolory, emoji na środku i podpis owijający się dookoła kodu (obrót suwakiem, auto-dopasowanie). Opcja przezroczystego tła, eksport PNG i systemowe udostępnianie. W 100% offline — silnik QR (qrcode-generator, MIT) dołączony w pliku."
+  },
+  "author": "natzomito",
+  "version": "1.0",
+  "tags": [
+    "qr",
+    "generator",
+    "emoji",
+    "tools",
+    "offline"
+  ],
+  "languages": [
+    "pl",
+    "en"
+  ],
+  "network": false,
+  "translationWanted": []
+}

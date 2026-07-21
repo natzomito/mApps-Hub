@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Czysty Link — YouTube bez śledzenia</title>
+<style>
+  :root{--bg:#0f1115;--card:#181c24;--accent:#ff4d4d;--text:#e8eaee;--muted:#9aa3b2;--ok:#3ddc84;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px 12px;padding-top:calc(env(safe-area-inset-top,0px) + 24px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px);}
+  main{width:100%;max-width:600px;}
+  h1{font-size:1.4rem;margin-bottom:4px;}
+  h1 span{color:var(--accent);}
+  .sub{color:var(--muted);font-size:.85rem;margin-bottom:20px;line-height:1.5;}
+  .card{background:var(--card);border-radius:14px;padding:18px;margin-bottom:14px;}
+  textarea{width:100%;min-height:70px;background:#0d1015;border:1px solid #2a3040;border-radius:10px;color:var(--text);padding:12px;font-size:.95rem;resize:vertical;}
+  textarea:focus{outline:none;border-color:var(--accent);}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  button{flex:1;min-width:100px;padding:11px 12px;border:none;border-radius:10px;font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s;}
+  .primary{background:var(--accent);color:#fff;}
+  .primary:hover{filter:brightness(1.1);}
+  .ghost{background:#242a36;color:var(--text);}
+  .ghost:hover{background:#2e3542;}
+  .tiny{flex:0 0 auto;min-width:0;padding:7px 11px;font-size:.78rem;}
+  #result{display:none;}
+  #result.show{display:block;}
+  #cleanLink{word-break:break-all;background:#0d1015;border:1px solid var(--ok);border-radius:10px;padding:12px;font-size:.9rem;color:var(--ok);}
+  #videoInfo{margin-top:10px;font-size:.85rem;line-height:1.5;color:var(--text);display:none;}
+  #videoInfo .t{font-weight:700;}
+  .removed{color:var(--muted);font-size:.8rem;margin-top:10px;line-height:1.6;}
+  .removed code{background:#242a36;padding:1px 6px;border-radius:5px;font-size:.75rem;}
+  h2{font-size:.95rem;margin:22px 0 8px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
+  h2 button{font-size:.72rem;}
+  .hist{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+  .hist .title{font-size:.85rem;font-weight:600;margin-bottom:3px;}
+  .hist .date{color:var(--muted);font-size:.7rem;margin-bottom:6px;}
+  .hist .lnk{word-break:break-all;font-size:.78rem;color:var(--ok);margin-bottom:2px;}
+  .hist .lnk.long{color:var(--muted);display:none;}
+  .hist.expanded .lnk.long{display:block;}
+  .hist .actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .empty{color:var(--muted);font-size:.82rem;text-align:center;padding:14px 0;}
+  .note{color:var(--muted);font-size:.75rem;margin-top:18px;line-height:1.6;text-align:center;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ok);color:#062;padding:10px 18px;border-radius:20px;font-size:.85rem;font-weight:600;opacity:0;transition:.3s;pointer-events:none;z-index:9;}
+  .toast.show{opacity:1;}
+  .toast.err{background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+<main>
+  <h1>Czysty <span>Link</span></h1>
+  <p class="sub">Obcina z linku YouTube parametry śledzące — przede wszystkim <b>?si=</b>, który YouTube dokleja przy „Udostępnij", żeby wiedzieć, kto i skąd przekazuje link. Film działa tak samo bez nich.</p>
+
+  <div class="card">
+    <textarea id="input" placeholder="Wklej link, np. https://youtu.be/dQw4w9WgXcQ?si=abc123…"></textarea>
+    <div class="row">
+      <button class="ghost" id="pasteBtn">📋 Wklej ze schowka</button>
+      <button class="primary" id="cleanBtn">✂️ Oczyść link</button>
+    </div>
+  </div>
+
+  <div class="card" id="result">
+    <div id="cleanLink"></div>
+    <div id="videoInfo"></div>
+    <div class="removed" id="removedInfo"></div>
+    <div class="row">
+      <button class="primary" id="shareBtn">📤 Udostępnij</button>
+      <button class="ghost" id="copyBtn">📄 Kopiuj</button>
+    </div>
+  </div>
+
+  <h2>🕘 Historia <button class="ghost tiny" id="clearHist">Wyczyść</button></h2>
+  <div id="history"></div>
+
+  <p class="note">Czyszczenie działa w 100% lokalnie. Historia zapisywana tylko w Twojej przeglądarce (localStorage). Tytuły filmów pobierane przez noembed.com (wymaga internetu). Kod od zera, bez bibliotek.</p>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var input=document.getElementById('input'),
+      result=document.getElementById('result'),
+      cleanLink=document.getElementById('cleanLink'),
+      videoInfo=document.getElementById('videoInfo'),
+      removedInfo=document.getElementById('removedInfo'),
+      historyEl=document.getElementById('history'),
+      toast=document.getElementById('toast');
+  var currentClean='';
+  var HKEY='yt_clean_history_v1';
+
+  var TRACKERS=['si','utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','feature','pp','igshid'];
+  var KEEP={'v':1,'t':1,'list':1,'index':1,'start':1,'end':1,'time_continue':1};
+
+  function showToast(msg,isErr){
+    toast.textContent=msg;
+    toast.className='toast show'+(isErr?' err':'');
+    setTimeout(function(){toast.className='toast';},2200);
+  }
+  function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+  function extractId(u){
+    var m;
+    if(m=u.match(/(?:youtube\.com\/(?:watch\?[^#]*v=|shorts\/|embed\/|v\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/)) return m[1];
+    return null;
+  }
+
+  function cleanUrl(raw){
+    raw=raw.trim();
+    if(!raw) return null;
+    if(!/^https?:\/\//i.test(raw)) raw='https://'+raw;
+    var u;
+    try{ u=new URL(raw); }catch(e){ return {error:'To nie wygląda na poprawny link.'}; }
+    var host=u.hostname.toLowerCase();
+    var isYT=/(^|\.)youtube\.com$/.test(host)||host==='youtu.be'||/(^|\.)youtube-nocookie\.com$/.test(host);
+    if(!isYT) return {error:'To nie jest link YouTube.'};
+
+    var params=u.searchParams;
+    var removed=[];
+    TRACKERS.forEach(function(k){ if(params.has(k)){ removed.push(k); params.delete(k); } });
+    var toDelete=[];
+    params.forEach(function(v,k){ if(!KEEP[k]) toDelete.push(k); });
+    toDelete.forEach(function(k){ removed.push(k); params.delete(k); });
+
+    var qs=params.toString();
+    u.search=qs?('?'+qs):'';
+    u.hash='';
+    var clean=u.toString();
+    var id=extractId(clean);
+    // kanoniczny krótki i długi link
+    var short=id?('https://youtu.be/'+id):clean;
+    var long=id?('https://www.youtube.com/watch?v='+id+(params.get('list')?'&list='+params.get('list'):'')+(params.get('t')?'&t='+params.get('t'):'')):clean;
+    return {url:short,long:long,removed:removed,id:id};
+  }
+
+  /* ------- historia (localStorage) ------- */
+  function loadHist(){
+    try{ return JSON.parse(localStorage.getItem(HKEY))||[]; }catch(e){ return []; }
+  }
+  function saveHist(h){ try{ localStorage.setItem(HKEY,JSON.stringify(h.slice(0,50))); }catch(e){} }
+  function addHist(entry){
+    var h=loadHist();
+    h=h.filter(function(e){ return e.short!==entry.short; });
+    h.unshift(entry);
+    saveHist(h);
+    renderHist();
+  }
+  function renderHist(){
+    var h=loadHist();
+    if(!h.length){ historyEl.innerHTML='<div class="empty">Brak zapisanych linków.</div>'; return; }
+    historyEl.innerHTML='';
+    h.forEach(function(e,idx){
+      var d=document.createElement('div');
+      d.className='hist';
+      d.innerHTML=
+        (e.title?'<div class="title">'+esc(e.title)+'</div>':'')+
+        '<div class="date">'+esc(e.date)+'</div>'+
+        '<div class="lnk">✂️ '+esc(e.short)+'</div>'+
+        '<div class="lnk long">🗄️ '+esc(e.long)+'</div>'+
+        '<div class="actions">'+
+          '<button class="ghost tiny" data-a="short">Kopiuj krótki</button>'+
+          '<button class="ghost tiny" data-a="long">Kopiuj długi</button>'+
+          '<button class="ghost tiny" data-a="toggle">Archiwalny</button>'+
+          '<button class="ghost tiny" data-a="del">🗑</button>'+
+        '</div>';
+      d.querySelector('[data-a=short]').onclick=function(){ copyText(e.short); };
+      d.querySelector('[data-a=long]').onclick=function(){ copyText(e.long); };
+      d.querySelector('[data-a=toggle]').onclick=function(){ d.classList.toggle('expanded'); };
+      d.querySelector('[data-a=del]').onclick=function(){
+        var hh=loadHist(); hh.splice(idx,1); saveHist(hh); renderHist();
+      };
+      historyEl.appendChild(d);
+    });
+  }
+  document.getElementById('clearHist').addEventListener('click',function(){
+    saveHist([]); renderHist(); showToast('Historia wyczyszczona');
+  });
+
+  function copyText(t,msg){
+    var done=function(){showToast(msg||'Skopiowano ✔');};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(done).catch(function(){fb();done();});
+    } else { fb(); done(); }
+    function fb(){
+      var ta=document.createElement('textarea');
+      ta.value=t;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');}catch(e){}
+      document.body.removeChild(ta);
+    }
+  }
+
+  /* ------- tytuł filmu przez noembed ------- */
+  function fetchTitle(id,cb){
+    fetch('https://noembed.com/embed?url='+encodeURIComponent('https://www.youtube.com/watch?v='+id))
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d&&d.title) cb(d.title+(d.author_name?' — '+d.author_name:'')); })
+      .catch(function(){});
+  }
+
+  function doClean(){
+    var r=cleanUrl(input.value);
+    if(!r){ showToast('Wklej najpierw link',true); return; }
+    if(r.error){ showToast(r.error,true); return; }
+    currentClean=r.url;
+    cleanLink.textContent=r.url;
+    removedInfo.innerHTML = r.removed.length
+      ? 'Usunięto: '+r.removed.map(function(k){return '<code>'+k+'</code>';}).join(' ')
+      : 'Link był już czysty 🙂';
+    videoInfo.style.display='none';
+    result.classList.add('show');
+
+    var entry={short:r.url,long:r.long,date:new Date().toLocaleString('pl-PL'),title:''};
+    addHist(entry);
+    if(r.id){
+      fetchTitle(r.id,function(t){
+        videoInfo.innerHTML='<div class="t">'+esc(t)+'</div>';
+        videoInfo.style.display='block';
+        var h=loadHist();
+        if(h.length&&h[0].short===r.url){ h[0].title=t; saveHist(h); renderHist(); }
+      });
+    }
+  }
+
+  document.getElementById('cleanBtn').addEventListener('click',doClean);
+  input.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doClean();} });
+
+  document.getElementById('pasteBtn').addEventListener('click',function(){
+    if(!navigator.clipboard||!navigator.clipboard.readText){ showToast('Brak dostępu do schowka — wklej ręcznie',true); return; }
+    navigator.clipboard.readText().then(function(t){ input.value=t; doClean(); })
+      .catch(function(){ showToast('Nie udało się odczytać schowka — wklej ręcznie',true); });
+  });
+
+  document.getElementById('copyBtn').addEventListener('click',function(){
+    if(currentClean) copyText(currentClean);
+  });
+
+  document.getElementById('shareBtn').addEventListener('click',function(){
+    if(!currentClean) return;
+    if(navigator.share){
+      navigator.share({url:currentClean,title:'YouTube'}).catch(function(err){
+        if(err&&err.name==='AbortError') return;
+        copyText(currentClean);
+      });
+    } else {
+      copyText(currentClean,'Udostępnianie niedostępne — skopiowano');
+    }
+  });
+
+  renderHist();
+})();
+</script>
+</body>
+</html>
