@@ -20,6 +20,9 @@ On Android, open the same URL in Chrome and use "Install app" / "Add to Home scr
 - **🔲 (QR icon, top left)** opens a share sheet with a QR code and a copy-link button — generated entirely on-device (a small vendored open-source library, no external service), so anyone can scan or paste the link to install the Hub themselves. Includes step-by-step "Add to Home Screen" instructions for both iOS and Android.
 - **🧭 (compass icon, top left)** opens the **Discover** catalog — browse every mApp published in this repo and tap **Install** to add it straight to your library. No download-and-import needed; the Hub fetches it for you in your language automatically (falls back to English).
 - **Long-press a tile** for actions: pin, hide, edit, allow/block internet, export the HTML, delete.
+- **Folders:** the folder button next to the search bar creates one. Long-press an app → **Move to folder**, or drag it onto a folder in **Arrange** mode. A folder shows its first four apps as a preview; tap it to open. Good for things like notes and write-ups an AI made for you as HTML pages. When adding from a file, you can pick several `.html` files at once and send them straight to a folder.
+- **Sorting and views:** sort by custom order, A–Z, date added, or recently used. Switch between the tile grid and a list/tree view where folders fold open and closed. **Arrange** lets you drag tiles into your own order.
+- **Appearance:** Settings → Appearance: *Classic* (lightest), *Glass* (iOS-style frosted glass) or *Matrix* (green terminal with falling characters).
 - **Settings** → backup all apps and icons to a single JSON file, restore anytime, switch language (English/Polish, auto-detected), check for Hub updates, replay the welcome screen (tap "mApps Hub").
 
 First time you open the Hub, a short welcome screen explains all of this — swipe through it or tap Skip.
@@ -61,6 +64,8 @@ Import the result into your Hub. That's the whole workflow — an idea to a work
 mApps to jednoplikowe mini-aplikacje HTML. Hub to launcher, który je wszystkie trzyma: instalujesz raz jako web-apkę (Safari → Udostępnij → Dodaj do ekranu początkowego), potem importujesz dowolną mApkę i zostaje na Twoim urządzeniu. Bez kont, bez chmury.
 
 **Domyślnie offline.** Każda zaimportowana apka działa z zablokowanym dostępem do sieci (Content Security Policy egzekwowane przez przeglądarkę) — nie może nigdzie wysłać Twoich danych. Internet włączasz per aplikacja, jawnie, tylko dla zaufanego kodu.
+
+**Foldery i porządek:** apki (np. notatki i opracowania HTML od AI) grupujesz w foldery. Przytrzymaj apkę → „Przenieś do folderu” albo przeciągnij ją na folder w trybie **Układaj**. Sortowanie: własna kolejność, A–Z, data dodania, ostatnio używane. Widok: kafelki albo lista/drzewo. Wygląd (Ustawienia): Klasyczny, Szkło albo Matrix.
 
 Katalog aplikacji: zakładka **Discover** w Hubie (ikona kompasu) — jedno dotknięcie „Zainstaluj" i apka ląduje w bibliotece. Możesz też przejrzeć kod wcześniej w folderze [`apps/`](apps/) na GitHubie. Chcesz dodać własną apkę albo tłumaczenie? Wystaw Pull Request (szczegóły wyżej, w sekcji Contribute). Chcesz poprosić o tłumaczenie? Załóż Issue.
 
