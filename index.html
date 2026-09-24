@@ -30,6 +30,7 @@
   --muted:#939D94;
   --honey:#E8A93D;
   --honey-deep:#C97F26;
+  --on-accent:#1A1408;
   --danger:#E06C55;
   --radius:18px;
   --icon-size:64px;
@@ -60,13 +61,14 @@ input,textarea{font:inherit;-webkit-user-select:text;user-select:text}
 
 /* ---------- Nagłówek ---------- */
 header.top{
-  display:flex;align-items:baseline;justify-content:space-between;
-  margin-bottom:18px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;min-height:40px;
 }
-.wordmark{font-size:26px;letter-spacing:-.02em;font-weight:300}
+.wordmark{font-size:26px;line-height:1;letter-spacing:-.02em;font-weight:300}
 .wordmark b{font-weight:800}
 .wordmark .dot{color:var(--honey)}
-.top-actions{display:flex;gap:6px}
+/* ujemny margines: ikona (a nie jej pole dotyku) trzyma się prawej krawędzi treści */
+.top-actions{display:flex;gap:4px;margin-right:-9px}
 .icon-btn{
   width:38px;height:38px;border-radius:12px;
   display:grid;place-items:center;color:var(--muted);
@@ -90,7 +92,7 @@ header.top{
 .cat-info .m{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-top:5px}
 .cat-btn{
   flex:none;padding:9px 14px;border-radius:11px;font-size:13.5px;font-weight:600;
-  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;
+  background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:var(--on-accent);
 }
 .cat-btn:disabled{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .cat-empty{color:var(--muted);font-size:13.5px;text-align:center;padding:22px 10px;line-height:1.5}
@@ -151,37 +153,181 @@ header.top{
   font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size:11px;color:var(--honey);font-weight:500;letter-spacing:0;
 }
+/* stała liczba kolumn (jak ekran główny iOS) — ikony i podpisy zawsze w tych samych osiach */
 .grid{
-  display:grid;grid-template-columns:repeat(auto-fill, minmax(76px, 1fr));
-  gap:18px 10px;
+  display:grid;grid-template-columns:repeat(var(--cols, 4), minmax(0, 1fr));
+  gap:20px 6px;
 }
+@media (min-width:500px){ :root{ --cols:5 } }
+@media (max-width:340px){ :root{ --icon-size:54px } }
 
 /* ---------- Kafelek aplikacji ---------- */
 .tile{
-  display:flex;flex-direction:column;align-items:center;gap:8px;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  width:100%;min-width:0;
   animation:tileIn .3s ease both;
 }
 @keyframes tileIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-.tile .icon{
-  width:var(--icon-size);height:var(--icon-size);
-  border-radius:16px;
+.tile .icon, .row .icon{
+  width:var(--icon-size);height:var(--icon-size);flex:none;
+  border-radius:var(--icon-radius, 16px);
   display:grid;place-items:center;
-  font-size:26px;font-weight:700;color:rgba(255,255,255,.92);
+  font-size:26px;line-height:1;font-weight:700;color:rgba(255,255,255,.92);
   background-size:cover;background-position:center;
   box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 4px 14px rgba(0,0,0,.35);
   transition:transform .12s ease;
   position:relative;overflow:hidden;
 }
 .tile:active .icon{transform:scale(.9)}
-.tile .icon .pin{
+.icon .pin{
   position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;
   background:var(--honey);box-shadow:0 0 0 2px rgba(15,19,17,.55);
 }
 .tile .name{
-  font-size:12px;color:var(--text);max-width:80px;text-align:center;
+  width:100%;padding:0 2px;
+  font-size:12px;line-height:1.25;color:var(--text);text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .tile.dim{opacity:.45}
+
+/* ---------- Folder (kafelek z podglądem 4 apek) ---------- */
+.icon.folder-icon{
+  background:var(--folder-bg, rgba(255,255,255,.07));
+  border:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  gap:5px;padding:9px;place-items:stretch;
+}
+.folder-icon .mini{
+  border-radius:5px;display:grid;place-items:center;
+  font-size:10px;font-weight:700;color:rgba(255,255,255,.9);
+  background-size:cover;background-position:center;
+}
+.folder-icon .mini.empty-slot{background:rgba(255,255,255,.05)}
+.tile.drop-target .icon, .row.drop-target{
+  transform:scale(1.12);box-shadow:0 0 0 3px var(--honey), 0 8px 24px rgba(0,0,0,.4);
+}
+
+/* ---------- Pasek narzędzi: sortowanie / widok / układanie ---------- */
+.toolbar{
+  display:flex;align-items:center;gap:8px;margin:-12px 0 22px;
+}
+.toolbar .grow{flex:1}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;
+  border-radius:11px;background:var(--surface);border:1px solid var(--line);
+  font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;
+}
+.chip svg{width:15px;height:15px;flex:none}
+.chip b{color:var(--text);font-weight:600}
+.chip:active{background:var(--surface-2)}
+.chip.icon-only{width:34px;padding:0;justify-content:center}
+.chip.on{background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:var(--on-accent);border-color:transparent}
+.chip.on b{color:inherit}
+.vseg{display:inline-flex;height:34px;padding:2px;border-radius:11px;background:var(--surface);border:1px solid var(--line)}
+.vseg button{width:32px;border-radius:8px;display:grid;place-items:center;color:var(--muted)}
+.vseg button svg{width:16px;height:16px}
+.vseg button.on{background:var(--surface-2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+
+/* menu sortowania */
+.menu{
+  position:absolute;z-index:45;min-width:200px;padding:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 12px 36px rgba(0,0,0,.45);
+  opacity:0;transform:scale(.96) translateY(-4px);transform-origin:top left;
+  pointer-events:none;transition:opacity .15s, transform .15s;
+}
+.menu.show{opacity:1;transform:none;pointer-events:auto}
+.menu button{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;
+}
+.menu button:active{background:var(--surface-2)}
+.menu button .ck{color:var(--honey);visibility:hidden}
+.menu button.on .ck{visibility:visible}
+
+/* ---------- Tryb układania (przeciąganie) ---------- */
+body.arranging .tile, body.arranging .row{touch-action:none}
+body.arranging .tile .icon{animation:jiggle .32s ease-in-out infinite alternate}
+body.arranging .tile:nth-child(2n) .icon{animation-delay:-.16s}
+@keyframes jiggle{from{transform:rotate(-1.6deg)}to{transform:rotate(1.6deg)}}
+.drag-src{opacity:.25}
+.drag-ghost{
+  position:fixed;z-index:500;pointer-events:none;margin:0;
+  transform:scale(1.08);filter:drop-shadow(0 12px 22px rgba(0,0,0,.5));
+}
+.drag-ghost .icon{animation:none !important}
+.row .handle{display:none;color:var(--muted);padding:8px 2px 8px 8px}
+.row .handle svg{width:18px;height:18px;display:block}
+body.arranging .row .handle{display:block}
+
+/* ---------- Widok listy (drzewo) ---------- */
+.tree{display:flex;flex-direction:column;gap:2px}
+.row{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:7px 8px;border-radius:14px;text-align:left;
+  transition:background .12s;
+}
+.row:active{background:var(--surface)}
+.row .icon{--icon-size:40px;border-radius:11px;font-size:17px}
+.row .icon.folder-icon{gap:3px;padding:6px}
+.row .icon.folder-icon .mini{border-radius:3px;font-size:0}
+.row .txt{flex:1;min-width:0}
+.row .n{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .chev{width:16px;height:16px;color:var(--muted);flex:none;transition:transform .2s}
+.row.folder.open .chev{transform:rotate(90deg)}
+.row.dim{opacity:.45}
+.tree-children{
+  display:none;flex-direction:column;gap:2px;
+  margin:2px 0 6px 27px;padding-left:12px;border-left:1px solid var(--line);
+}
+.tree-children.open{display:flex}
+.tree-children .empty-note{font-size:13px;color:var(--muted);padding:10px 8px}
+
+/* ---------- Otwarty folder (nakładka) ---------- */
+#folderView{
+  position:fixed;inset:0;z-index:50;display:none;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(5,8,6,.55);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+#folderView.show{display:flex;animation:fvIn .22s ease both}
+@keyframes fvIn{from{opacity:0}to{opacity:1}}
+.fv-panel{
+  width:min(100%, 440px);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--fv-bg, var(--surface));border:1px solid var(--line);
+  border-radius:32px;padding:18px 18px 22px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+  animation:fvPop .26s cubic-bezier(.32,.72,.25,1) both;
+}
+@keyframes fvPop{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
+.fv-title{
+  width:100%;background:none;border:none;outline:none;color:var(--text);
+  font-size:22px;font-weight:700;text-align:center;letter-spacing:-.01em;
+  padding:6px 0 18px;
+}
+.fv-empty{text-align:center;color:var(--muted);font-size:13.5px;line-height:1.5;padding:10px 6px 4px}
+
+/* ---------- Wybór folderu (arkusz) ---------- */
+.pick-list{display:flex;flex-direction:column}
+.pick-list button{
+  display:flex;align-items:center;gap:14px;padding:12px 4px;font-size:16px;text-align:left;
+  border-bottom:1px solid var(--line);
+}
+.pick-list button:last-child{border-bottom:none}
+.pick-list button:active{background:var(--surface-2);border-radius:10px}
+.pick-list .icon{width:34px;height:34px;flex:none;border-radius:9px;font-size:0}
+.pick-list .mini, .action-head .mini{font-size:0}
+.pick-list .icon.folder-icon{gap:2px;padding:5px}
+.pick-list .ph{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;border:1px dashed var(--line);color:var(--muted)}
+.pick-list .ph svg{width:18px;height:18px}
+.pick-list .grow{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick-list .ck{color:var(--honey)}
+select.inp{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;color:var(--text);font-size:16px;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
 
 /* ---------- Pusty stan ---------- */
 .empty{
@@ -208,7 +354,7 @@ header.top{
   bottom:calc(var(--safe-bottom) + 24px);
   width:58px;height:58px;border-radius:20px;
   background:linear-gradient(140deg, var(--honey), var(--honey-deep));
-  color:#1A1408;display:grid;place-items:center;
+  color:var(--on-accent);display:grid;place-items:center;
   box-shadow:0 8px 24px rgba(232,169,61,.35);
   transition:transform .12s;
   z-index:40;
@@ -286,7 +432,7 @@ header.top{
 .btn-secondary:active{background:var(--line)}
 .btn-primary{
   width:100%;padding:15px;border-radius:14px;font-size:16px;font-weight:700;
-  background:linear-gradient(140deg, var(--honey), var(--honey-deep));color:#1A1408;
+  background:linear-gradient(140deg, var(--honey), var(--honey-deep));color:var(--on-accent);
   margin-top:6px;
 }
 .btn-primary:active{opacity:.85}
@@ -416,12 +562,109 @@ header.top{
   font-size:13px;color:var(--muted);padding:8px;z-index:2;
 }
 
+/* ============================================================
+   Motywy — wybór w Ustawieniach.
+   classic: domyślny, najlżejszy · glass: szkło w stylu iOS (blur — trochę
+   cięższy dla GPU) · matrix: zielony terminal z opcjonalnym deszczem znaków
+   ============================================================ */
+#bgfx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none}
+
+/* --- Szkło --- */
+body[data-theme="glass"]{
+  --bg:#0B0E1A;
+  --surface:rgba(255,255,255,.09);
+  --surface-2:rgba(255,255,255,.13);
+  --line:rgba(255,255,255,.14);
+  --text:#F5F7FF;
+  --muted:rgba(235,240,255,.62);
+  --honey:#64A8FF;
+  --honey-deep:#3F6FF0;
+  --on-accent:#fff;
+  --icon-radius:15px;
+  --folder-bg:rgba(255,255,255,.16);
+  --fv-bg:rgba(40,46,70,.55);
+  --glass-blur:blur(24px) saturate(170%);
+}
+body[data-theme="glass"] #bgfx{
+  display:block;
+  background:
+    linear-gradient(rgba(8,10,22,.28), rgba(8,10,22,.28)),
+    radial-gradient(60% 45% at 15% 10%, #6A4CFF 0%, transparent 70%),
+    radial-gradient(55% 45% at 90% 25%, #FF6FA8 0%, transparent 70%),
+    radial-gradient(70% 55% at 30% 95%, #1FC6C1 0%, transparent 70%),
+    radial-gradient(60% 50% at 95% 90%, #2A5BFF 0%, transparent 70%),
+    #121628;
+}
+body[data-theme="glass"] .search,
+body[data-theme="glass"] .chip,
+body[data-theme="glass"] .vseg,
+body[data-theme="glass"] .menu,
+body[data-theme="glass"] .sheet,
+body[data-theme="glass"] .fv-panel,
+body[data-theme="glass"] .icon.folder-icon,
+body[data-theme="glass"] .runner-bar,
+body[data-theme="glass"] #toast{
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+}
+body[data-theme="glass"] .sheet{background:rgba(30,34,56,.72);border-top-color:rgba(255,255,255,.2)}
+body[data-theme="glass"] .menu{background:rgba(40,46,72,.78)}
+body[data-theme="glass"] #toast{background:rgba(40,46,72,.8)}
+body[data-theme="glass"] .runner-bar{background:rgba(20,24,40,.7)}
+body[data-theme="glass"] .tile .icon:not(.folder-icon),
+body[data-theme="glass"] .row .icon:not(.folder-icon){
+  box-shadow:0 0 0 .5px rgba(255,255,255,.35) inset, 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 18px rgba(0,0,0,.35);
+}
+body[data-theme="glass"] .tile .name{text-shadow:0 1px 3px rgba(0,0,0,.45)}
+body[data-theme="glass"] .fab{
+  background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+body[data-theme="glass"] .wordmark .dot{color:#fff}
+body[data-theme="glass"] #folderView{background:rgba(10,12,28,.35);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%)}
+body[data-theme="glass"] .seg,
+body[data-theme="glass"] .field input[type=text],
+body[data-theme="glass"] .field textarea,
+body[data-theme="glass"] select.inp{background:rgba(0,0,0,.2)}
+body[data-theme="glass"] .seg button.on{background:rgba(255,255,255,.18)}
+body[data-theme="glass"] .scrim{background:rgba(5,6,15,.35)}
+
+/* --- Matrix --- */
+body[data-theme="matrix"]{
+  --bg:#000;
+  --surface:#041006;
+  --surface-2:#07180A;
+  --line:#0F3A16;
+  --text:#B8FFC4;
+  --muted:#3FA551;
+  --honey:#00FF41;
+  --honey-deep:#00B82E;
+  --on-accent:#001A06;
+  --icon-radius:6px;
+  --folder-bg:rgba(0,255,65,.04);
+  --fv-bg:rgba(0,10,2,.92);
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+body[data-theme="matrix"] #bgfx{display:block;opacity:.22}
+body[data-theme="matrix"] .tile .icon:not(.img):not(.folder-icon),
+body[data-theme="matrix"] .row .icon:not(.img):not(.folder-icon),
+body[data-theme="matrix"] .icon-preview:not(.img):not(.folder-icon),
+body[data-theme="matrix"] .mini:not(.img):not(.empty-slot){
+  background:#021405 !important;color:var(--honey);
+  border:1px solid rgba(0,255,65,.45);text-shadow:0 0 8px rgba(0,255,65,.8);
+}
+body[data-theme="matrix"] .tile .icon{box-shadow:0 0 14px rgba(0,255,65,.12)}
+body[data-theme="matrix"] .wordmark{text-shadow:0 0 10px rgba(0,255,65,.55)}
+body[data-theme="matrix"] .fab{box-shadow:0 0 24px rgba(0,255,65,.45)}
+body[data-theme="matrix"] #folderView{background:rgba(0,0,0,.7)}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important;transition:none !important}
 }
 </style>
 </head>
 <body>
+<canvas id="bgfx" aria-hidden="true"></canvas>
 
 <div id="app">
   <header class="top">
@@ -445,6 +688,35 @@ header.top{
     <input type="search" id="searchInput" data-i18n-ph="search_ph" placeholder="Szukaj aplikacji" autocomplete="off">
   </div>
 
+  <div class="toolbar" id="toolbar" style="position:relative">
+    <button class="chip" id="btnSort" aria-haspopup="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h13M3 12h9M3 18h5M17 10V20M14 17l3 3 3-3"/></svg>
+      <b id="sortLabel">A–Z</b>
+    </button>
+    <div class="grow"></div>
+    <button class="chip icon-only" id="btnNewFolder" aria-label="Nowy folder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+    </button>
+    <div class="vseg" role="group">
+      <button id="viewGrid" class="on" aria-label="Kafelki">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></svg>
+      </button>
+      <button id="viewList" aria-label="Lista">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>
+      </button>
+    </div>
+    <button class="chip" id="btnArrange">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>
+      <b id="arrangeLabel">Układaj</b>
+    </button>
+    <div class="menu" id="sortMenu" style="top:40px;left:0">
+      <button data-sort="custom"><span data-i18n="sort_custom">Własna kolejność</span><span class="ck">✓</span></button>
+      <button data-sort="alpha"><span data-i18n="sort_alpha">Alfabetycznie</span><span class="ck">✓</span></button>
+      <button data-sort="date"><span data-i18n="sort_date">Data dodania</span><span class="ck">✓</span></button>
+      <button data-sort="used"><span data-i18n="sort_used">Ostatnio używane</span><span class="ck">✓</span></button>
+    </div>
+  </div>
+
   <div class="section" id="pinnedSection" style="display:none">
     <div class="section-label"><span data-i18n="pinned">Przypięte</span> <span class="count" id="pinnedCount"></span></div>
     <div class="grid" id="pinnedGrid"></div>
@@ -453,6 +725,7 @@ header.top{
   <div class="section" id="librarySection">
     <div class="section-label"><span data-i18n="library">Biblioteka</span> <span class="count" id="libraryCount"></span></div>
     <div class="grid" id="libraryGrid"></div>
+    <div class="tree" id="libraryList" style="display:none"></div>
     <div class="empty" id="emptyState" style="display:none">
       <div class="hex">⬡</div>
       <b data-i18n="empty_title">Pusto tutaj</b>
@@ -472,6 +745,15 @@ header.top{
 <button class="fab" id="btnAdd" aria-label="Dodaj aplikację">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
 </button>
+
+<!-- Otwarty folder -->
+<div id="folderView">
+  <div class="fv-panel" id="fvPanel">
+    <input class="fv-title" id="fvTitle" maxlength="40" autocomplete="off" spellcheck="false">
+    <div class="grid" id="fvGrid"></div>
+    <div class="fv-empty" id="fvEmpty" data-i18n="folder_empty">Folder jest pusty. Przytrzymaj aplikację → „Przenieś do folderu”, albo przeciągnij ją tu w trybie układania.</div>
+  </div>
+</div>
 
 <!-- Scrim -->
 <div class="scrim" id="scrim"></div>
@@ -497,6 +779,11 @@ header.top{
       </div>
     </div>
     <div class="hint" data-i18n="icon_hint">Bez własnej ikony hub wygeneruje kafelek z pierwszej litery nazwy.</div>
+  </div>
+
+  <div class="field">
+    <label for="fFolder" data-i18n="folder">Folder</label>
+    <select class="inp" id="fFolder"></select>
   </div>
 
   <div class="field">
@@ -553,6 +840,10 @@ header.top{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.53 13.53 0 0 0 2 12s3 8 10 8a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"/></svg>
       <span id="asHideLabel">Ukryj</span>
     </button>
+    <button id="asMove">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M10 13h6M13 10l3 3-3 3"/></svg>
+      <span data-i18n="move_to_folder">Przenieś do folderu</span>
+    </button>
     <button id="asNet">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
       <span id="asNetLabel">Zezwól na internet</span>
@@ -572,6 +863,41 @@ header.top{
   </div>
 </div>
 
+<!-- Arkusz: wybór folderu -->
+<div class="sheet" id="moveSheet">
+  <button class="sheet-close" aria-label="Zamknij">✕</button>
+  <div class="grab"></div>
+  <h2 data-i18n="move_to_folder">Przenieś do folderu</h2>
+  <div class="pick-list" id="moveList"></div>
+</div>
+
+<!-- Arkusz: akcje folderu -->
+<div class="sheet" id="folderSheet">
+  <button class="sheet-close" aria-label="Zamknij">✕</button>
+  <div class="grab"></div>
+  <div class="action-head">
+    <div class="icon-preview folder-icon icon" id="fsIcon"></div>
+    <div>
+      <div class="t" id="fsName"></div>
+      <div class="s" id="fsMeta"></div>
+    </div>
+  </div>
+  <div class="action-list">
+    <button id="fsOpen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+      <span data-i18n="open">Otwórz</span>
+    </button>
+    <button id="fsRename">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      <span data-i18n="rename">Zmień nazwę</span>
+    </button>
+    <button id="fsDelete" class="danger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      <span data-i18n="folder_delete">Usuń folder (aplikacje zostają)</span>
+    </button>
+  </div>
+</div>
+
 <!-- Arkusz: ustawienia -->
 <div class="sheet" id="settingsSheet">
   <button class="sheet-close" aria-label="Zamknij">✕</button>
@@ -583,6 +909,17 @@ header.top{
       <option value="pl">Polski</option>
       <option value="en">English</option>
     </select>
+  </div>
+  <div class="settings-row" style="display:block">
+    <div style="margin-bottom:10px">
+      <span data-i18n="theme">Wygląd</span>
+      <div class="sub" data-i18n="theme_sub">Szkło i Matrix wyglądają efektowniej, ale trochę bardziej obciążają telefon.</div>
+    </div>
+    <div class="seg" id="themeSeg" style="margin-bottom:0">
+      <button data-theme="classic" data-i18n="theme_classic">Klasyczny</button>
+      <button data-theme="glass" data-i18n="theme_glass">Szkło</button>
+      <button data-theme="matrix">Matrix</button>
+    </div>
   </div>
   <div class="settings-row">
     <div>
@@ -617,7 +954,7 @@ header.top{
       <span data-i18n="version">Wersja</span>
       <div class="sub" data-i18n="version_sub">Aktualizacja podmienia tylko kod launchera. Twoje aplikacje i dane zostają nietknięte.</div>
     </div>
-    <button class="btn-secondary" id="btnUpdate" style="background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:#1A1408;border:none;font-weight:700">Aktualizuj</button>
+    <button class="btn-secondary" id="btnUpdate" style="background:linear-gradient(140deg,var(--honey),var(--honey-deep));color:var(--on-accent);border:none;font-weight:700">Aktualizuj</button>
   </div>
 </div>
 
@@ -677,7 +1014,7 @@ header.top{
 
 <!-- ukryte inputy plików -->
 <input type="file" id="inpIcon" accept="image/*" style="display:none">
-<input type="file" id="inpHtml" accept=".html,.htm,text/html" style="display:none">
+<input type="file" id="inpHtml" accept=".html,.htm,text/html" multiple style="display:none">
 <input type="file" id="inpBackup" accept=".json,application/json" style="display:none">
 
 <!-- Biblioteka QR (wendorowana offline, MIT) -->
@@ -738,42 +1075,62 @@ window.__mappsQR = qrcode;
 /* ============================================================
    IndexedDB
    ============================================================ */
-const DB_NAME = "mappshub", STORE = "apps";
+const DB_NAME = "mappshub", STORE = "apps", FSTORE = "folders";
 let db;
 
 function openDB(){
   return new Promise((res, rej) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    // v2: doszedł magazyn folderów; apki z v1 zostają nietknięte
+    const req = indexedDB.open(DB_NAME, 2);
     req.onupgradeneeded = () => {
       const d = req.result;
       if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: "id" });
+      if (!d.objectStoreNames.contains(FSTORE)) d.createObjectStore(FSTORE, { keyPath: "id" });
     };
     req.onsuccess = () => { db = req.result; res(); };
     req.onerror = () => rej(req.error);
   });
 }
-function tx(mode){ return db.transaction(STORE, mode).objectStore(STORE); }
-function dbAll(){ return new Promise((res, rej) => { const r = tx("readonly").getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-function dbPut(app){ return new Promise((res, rej) => { const r = tx("readwrite").put(app); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
-function dbDel(id){ return new Promise((res, rej) => { const r = tx("readwrite").delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+function tx(mode, store = STORE){ return db.transaction(store, mode).objectStore(store); }
+function dbAll(store = STORE){ return new Promise((res, rej) => { const r = tx("readonly", store).getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+function dbPut(obj, store = STORE){ return new Promise((res, rej) => { const r = tx("readwrite", store).put(obj); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+function dbDel(id, store = STORE){ return new Promise((res, rej) => { const r = tx("readwrite", store).delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+const putFolder = f => dbPut(f, FSTORE);
+const newId = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random();
 
 /* ============================================================
    Stan
    ============================================================ */
 let apps = [];
+let folders = [];
 let editingId = null;      // null = dodawanie, id = edycja
 let selectedApp = null;    // aplikacja w action sheet
 let pendingIcon = undefined; // undefined = bez zmian, null = usuń, string = nowy dataURL
 let pendingCode = null;
 let pendingNet = false;
 let codeSource = "paste";
+let pendingFiles = null;   // import kilku plików naraz: [{name, code}]
+let selectedFolder = null; // folder w arkuszu akcji folderu
+let openFolderId = null;   // folder otwarty w nakładce
+let arranging = false;     // tryb układania (przeciąganie)
 
 const $ = id => document.getElementById(id);
+
+/* preferencje widoku — per urządzenie, w localStorage */
+const PREF_KEYS = { sort: "mapps:sort", view: "mapps:view", theme: "mapps:theme" };
+function pref(k, def, allowed){
+  try { const v = localStorage.getItem(PREF_KEYS[k]); if (allowed.includes(v)) return v; } catch {}
+  return def;
+}
+function setPref(k, v){ try { localStorage.setItem(PREF_KEYS[k], v); } catch {} }
+let sortMode = pref("sort", "alpha", ["custom", "alpha", "date", "used"]);
+let viewMode = pref("view", "grid", ["grid", "list"]);
+let theme    = pref("theme", "classic", ["classic", "glass", "matrix"]);
 
 /* ============================================================
    Języki
    ============================================================ */
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const LKEY = "mapps:lang";
 const T = {
   pl: {
@@ -813,6 +1170,22 @@ const T = {
     update:"Aktualizuj",
     c_delete: n => `Usunąć „${n}”? Tej operacji nie można cofnąć.`,
     c_net: n => `Zezwolić „${n}” na dostęp do internetu? Apka będzie mogła wysyłać i pobierać dane z sieci. Rób to tylko dla kodu, któremu ufasz.`,
+    folder:"Folder", no_folder:"Bez folderu", new_folder:"Nowy folder", new_folder_opt:"+ Nowy folder…",
+    folder_name:"Nazwa folderu", folder_default:"Nowy folder",
+    folder_empty:"Folder jest pusty. Przytrzymaj aplikację → „Przenieś do folderu”, albo przeciągnij ją na folder w trybie układania.",
+    move_to_folder:"Przenieś do folderu", rename:"Zmień nazwę", folder_delete:"Usuń folder (aplikacje zostają)",
+    c_folder_delete: n => `Usunąć folder „${n}”? Aplikacje z niego wrócą do biblioteki.`,
+    t_moved:"Przeniesiono do: ", t_unfiled:"Wyjęto z folderu", t_folder_created:"Utworzono folder: ",
+    n_apps: n => n === 1 ? "1 aplikacja" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? `${n} aplikacje` : `${n} aplikacji`,
+    sort_custom:"Własna kolejność", sort_alpha:"Alfabetycznie", sort_date:"Data dodania", sort_used:"Ostatnio używane",
+    sort_s_custom:"Własna", sort_s_alpha:"A–Z", sort_s_date:"Najnowsze", sort_s_used:"Ostatnie",
+    arrange:"Układaj", done:"Gotowe",
+    t_arrange:"Przeciągaj kafelki. Upuść na folder, żeby go tam wrzucić.",
+    added_on:"dodano ",
+    bulk_files: n => `Wybrano plików: ${n} — każdy będzie osobną aplikacją (nazwy z <title>).`,
+    t_added_n:"Dodano aplikacji: ",
+    theme:"Wygląd", theme_sub:"Szkło i Matrix wyglądają efektowniej, ale trochę bardziej obciążają telefon.",
+    theme_classic:"Klasyczny", theme_glass:"Szkło",
     onb_skip:"Pomiń", onb_back:"Wstecz", onb_next:"Dalej", onb_start:"Zaczynajmy",
     onb1_t:"Witaj w mApps Hub", onb1_p:"Jedno miejsce na wszystkie Twoje mini-aplikacje HTML. Bez sklepu, bez kont, bez chmury — wszystko zostaje na tym telefonie.",
     onb2_t:"Dodawaj własne", onb2_p:"Poproś dowolny LLM o jednoplikową mini-aplikację HTML, wklej kod albo wybierz plik z telefonu. Możesz też ustawić własną ikonę z galerii.",
@@ -871,6 +1244,22 @@ const T = {
     update:"Update",
     c_delete: n => `Delete “${n}”? This can't be undone.`,
     c_net: n => `Allow “${n}” to access the internet? The app will be able to send and fetch data. Do this only for code you trust.`,
+    folder:"Folder", no_folder:"No folder", new_folder:"New folder", new_folder_opt:"+ New folder…",
+    folder_name:"Folder name", folder_default:"New folder",
+    folder_empty:"This folder is empty. Long-press an app → “Move to folder”, or drag it onto the folder in arrange mode.",
+    move_to_folder:"Move to folder", rename:"Rename", folder_delete:"Delete folder (keep apps)",
+    c_folder_delete: n => `Delete folder “${n}”? Its apps go back to the library.`,
+    t_moved:"Moved to: ", t_unfiled:"Removed from folder", t_folder_created:"Folder created: ",
+    n_apps: n => n === 1 ? "1 app" : `${n} apps`,
+    sort_custom:"Custom order", sort_alpha:"Alphabetical", sort_date:"Date added", sort_used:"Recently used",
+    sort_s_custom:"Custom", sort_s_alpha:"A–Z", sort_s_date:"Newest", sort_s_used:"Recent",
+    arrange:"Arrange", done:"Done",
+    t_arrange:"Drag tiles around. Drop one on a folder to put it inside.",
+    added_on:"added ",
+    bulk_files: n => `${n} files selected — each becomes its own app (names from <title>).`,
+    t_added_n:"Apps added: ",
+    theme:"Appearance", theme_sub:"Glass and Matrix look fancier but are a bit heavier on the phone.",
+    theme_classic:"Classic", theme_glass:"Glass",
     onb_skip:"Skip", onb_back:"Back", onb_next:"Next", onb_start:"Let's go",
     onb1_t:"Welcome to mApps Hub", onb1_p:"One place for all your HTML mini-apps. No app store, no accounts, no cloud — everything stays on this phone.",
     onb2_t:"Add your own", onb2_p:"Ask any LLM for a single-file HTML mini-app, paste the code or pick a file from your phone. You can also set a custom icon from your gallery.",
@@ -945,6 +1334,7 @@ function iconLetter(name){
   return t ? t[0].toUpperCase() : "?";
 }
 function applyIcon(el, app){
+  el.classList.toggle("img", !!app.icon);
   if (app.icon){
     el.style.cssText = `background-image:url(${app.icon})`;
     el.textContent = "";
@@ -962,9 +1352,33 @@ function fmtSize(str){
   return b < 1024 ? b + " B" : b < 1048576 ? (b/1024).toFixed(1) + " kB" : (b/1048576).toFixed(2) + " MB";
 }
 
+/* tap = otwórz, długie przytrzymanie = akcje; w trybie układania — przeciąganie */
+let dragJustEnded = false;
+function bindPress(el, onTap, onLong, opts = {}){
+  let pressTimer = null, longPressed = false;
+  el.addEventListener("touchstart", () => {
+    longPressed = false;
+    if (arranging) return;
+    pressTimer = setTimeout(() => { longPressed = true; onLong(); if (navigator.vibrate) navigator.vibrate(10); }, 450);
+  }, { passive: true });
+  const cancel = () => clearTimeout(pressTimer);
+  el.addEventListener("touchend", cancel);
+  el.addEventListener("touchmove", cancel, { passive: true });
+  el.addEventListener("touchcancel", cancel);
+  el.addEventListener("contextmenu", e => { e.preventDefault(); if (!arranging) onLong(); });
+  el.addEventListener("click", e => {
+    if (longPressed){ longPressed = false; return; }
+    if (dragJustEnded) return;
+    if (arranging && !opts.tapWhileArranging) return;
+    onTap(e);
+  });
+  el.addEventListener("pointerdown", e => { if (arranging) dragPointerDown(e, opts.dragUnit || el); });
+}
+
 function makeTile(app){
   const tile = document.createElement("button");
-  tile.className = "tile";
+  tile.className = "tile dnd";
+  tile.dataset.kind = "app"; tile.dataset.id = app.id;
   if (app.hidden) tile.classList.add("dim");
 
   const icon = document.createElement("div");
@@ -982,56 +1396,179 @@ function makeTile(app){
 
   tile.appendChild(icon);
   tile.appendChild(name);
-
-  // tap = otwórz, długie przytrzymanie = akcje
-  let pressTimer = null, longPressed = false;
-  const start = () => {
-    longPressed = false;
-    pressTimer = setTimeout(() => { longPressed = true; openActionSheet(app); if (navigator.vibrate) navigator.vibrate(10); }, 450);
-  };
-  const cancel = () => clearTimeout(pressTimer);
-  tile.addEventListener("touchstart", start, { passive: true });
-  tile.addEventListener("touchend", cancel);
-  tile.addEventListener("touchmove", cancel, { passive: true });
-  tile.addEventListener("touchcancel", cancel);
-  tile.addEventListener("contextmenu", e => { e.preventDefault(); openActionSheet(app); });
-  tile.addEventListener("click", () => { if (!longPressed) launch(app); });
-
+  bindPress(tile, () => launch(app), () => openActionSheet(app));
   return tile;
+}
+
+/* ikona folderu: siatka 2×2 z pierwszymi czterema apkami */
+function fillFolderIcon(el, f){
+  el.textContent = "";
+  const kids = appsIn(f.id).slice(0, 4);
+  for (let i = 0; i < 4; i++){
+    const m = document.createElement("div");
+    m.className = "mini";
+    if (kids[i]) applyIcon(m, kids[i]); else m.classList.add("empty-slot");
+    el.appendChild(m);
+  }
+}
+function makeFolderTile(f){
+  const tile = document.createElement("button");
+  tile.className = "tile dnd";
+  tile.dataset.kind = "folder"; tile.dataset.id = f.id; tile.dataset.dropFolder = f.id;
+  const icon = document.createElement("div");
+  icon.className = "icon folder-icon";
+  fillFolderIcon(icon, f);
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = f.name;
+  tile.appendChild(icon);
+  tile.appendChild(name);
+  bindPress(tile, () => openFolder(f), () => openFolderSheet(f), { tapWhileArranging: true });
+  return tile;
+}
+
+const GRIP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16M4 12h16M4 16h16"/></svg>';
+const CHEV_SVG = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>';
+function fmtDate(ts){ return ts ? new Date(ts).toLocaleDateString(L === "pl" ? "pl-PL" : "en-GB") : ""; }
+function makeRowShell(kind, id, title, sub){
+  const row = document.createElement("button");
+  row.className = "row";
+  row.dataset.kind = kind; row.dataset.id = id;
+  const icon = document.createElement("div");
+  icon.className = "icon";
+  const txt = document.createElement("div");
+  txt.className = "txt";
+  const n = document.createElement("div"); n.className = "n"; n.textContent = title;
+  const s = document.createElement("div"); s.className = "s"; s.textContent = sub;
+  txt.appendChild(n); txt.appendChild(s);
+  row.appendChild(icon); row.appendChild(txt);
+  return { row, icon };
+}
+function makeAppRow(app, showFolder){
+  let sub = sortMode === "used" && app.lastUsed ? t("meta_last") + fmtDate(app.lastUsed) : t("added_on") + fmtDate(app.created);
+  if (showFolder){ const f = folders.find(x => x.id === app.folderId); if (f) sub = f.name + " · " + sub; }
+  const { row, icon } = makeRowShell("app", app.id, app.name, sub);
+  row.classList.add("dnd");
+  if (app.hidden) row.classList.add("dim");
+  applyIcon(icon, app);
+  row.insertAdjacentHTML("beforeend", `<span class="handle">${GRIP_SVG}</span>`);
+  bindPress(row, () => launch(app), () => openActionSheet(app));
+  return row;
+}
+function makeFolderNode(f){
+  const node = document.createElement("div");
+  node.className = "tree-node dnd";
+  node.dataset.kind = "folder"; node.dataset.id = f.id;
+  const list = appsIn(f.id);
+  const { row, icon } = makeRowShell("folder", f.id, f.name, t("n_apps")(list.length));
+  row.classList.add("folder");
+  row.dataset.dropFolder = f.id;
+  if (!f.collapsed) row.classList.add("open");
+  icon.classList.add("folder-icon");
+  fillFolderIcon(icon, f);
+  row.insertAdjacentHTML("beforeend", CHEV_SVG + `<span class="handle">${GRIP_SVG}</span>`);
+  const kids = document.createElement("div");
+  kids.className = "tree-children" + (f.collapsed ? "" : " open");
+  list.forEach(a => kids.appendChild(makeAppRow(a)));
+  if (!list.length){
+    const e = document.createElement("div");
+    e.className = "empty-note"; e.textContent = t("folder_empty");
+    kids.appendChild(e);
+  }
+  bindPress(row, async () => {
+    f.collapsed = !f.collapsed;
+    row.classList.toggle("open", !f.collapsed);
+    kids.classList.toggle("open", !f.collapsed);
+    await putFolder(f);
+  }, () => openFolderSheet(f), { tapWhileArranging: true, dragUnit: node });
+  node.appendChild(row);
+  node.appendChild(kids);
+  return node;
+}
+
+/* ---------- sortowanie ---------- */
+function byName(a, b){ return a.name.localeCompare(b.name, L); }
+const orderKey = x => x.order != null ? x.order : (x.created || 0); // nowe elementy bez "order" lądują na końcu
+function lastUsedOf(it){
+  if (it.kind === "app") return it.ref.lastUsed || 0;
+  return appsIn(it.ref.id, true).reduce((m, a) => Math.max(m, a.lastUsed || 0), 0);
+}
+function cmpItems(a, b){
+  if (sortMode === "custom") return orderKey(a.ref) - orderKey(b.ref) || byName(a.ref, b.ref);
+  if (a.kind !== b.kind) return a.kind === "folder" ? -1 : 1; // foldery na górze
+  if (sortMode === "date") return (b.ref.created || 0) - (a.ref.created || 0) || byName(a.ref, b.ref);
+  if (sortMode === "used") return lastUsedOf(b) - lastUsedOf(a) || byName(a.ref, b.ref);
+  return byName(a.ref, b.ref);
+}
+const asItems = list => list.map(a => ({ kind: "app", ref: a }));
+const sortItems = items => items.sort(cmpItems);
+const sortApps = list => sortItems(asItems(list)).map(i => i.ref);
+function appsIn(fid, unsorted){
+  const list = apps.filter(a => a.folderId === fid && !a.hidden);
+  return unsorted ? list : sortApps(list);
+}
+function inFolder(a){ return !!a.folderId && folders.some(f => f.id === a.folderId); }
+/* elementy najwyższego poziomu biblioteki: foldery + apki poza folderami */
+function topLevelItems(){
+  return sortItems([
+    ...folders.map(f => ({ kind: "folder", ref: f })),
+    ...asItems(apps.filter(a => !a.hidden && !a.pinned && !inFolder(a)))
+  ]);
 }
 
 function render(){
   const q = $("searchInput").value.trim().toLowerCase();
   const match = a => !q || a.name.toLowerCase().includes(q);
 
-  const pinned  = apps.filter(a => a.pinned && !a.hidden && match(a)).sort(byName);
-  const library = apps.filter(a => !a.pinned && !a.hidden && match(a)).sort(byName);
-  const hidden  = apps.filter(a => a.hidden && match(a)).sort(byName);
+  const pinned = sortApps(apps.filter(a => a.pinned && !a.hidden && match(a)));
+  const hidden = sortApps(apps.filter(a => a.hidden && match(a)));
+  // przy wyszukiwaniu: płasko — pasujące foldery i apki (także te z folderów)
+  const items = q
+    ? sortItems([
+        ...folders.filter(f => f.name.toLowerCase().includes(q)).map(f => ({ kind: "folder", ref: f })),
+        ...asItems(apps.filter(a => !a.hidden && match(a) && !(a.pinned && !inFolder(a))))
+      ])
+    : topLevelItems();
+  const libCount = q
+    ? items.filter(i => i.kind === "app").length
+    : apps.filter(a => !a.hidden && (!a.pinned || inFolder(a))).length;
 
-  fillGrid("pinnedGrid", pinned);
-  fillGrid("libraryGrid", library);
-  fillGrid("hiddenGrid", hidden);
+  fillGrid("pinnedGrid", asItems(pinned));
+  fillGrid("hiddenGrid", asItems(hidden));
+  const asList = viewMode === "list";
+  $("libraryGrid").style.display = asList ? "none" : "";
+  $("libraryList").style.display = asList ? "" : "none";
+  if (asList) fillList("libraryList", items, !!q);
+  else fillGrid("libraryGrid", items);
 
+  const any = apps.length || folders.length;
+  $("toolbar").style.display = any ? "" : "none";
   $("pinnedSection").style.display = pinned.length ? "" : "none";
   $("hiddenSection").style.display = hidden.length ? "" : "none";
-  $("emptyState").style.display = apps.length ? "none" : "";
-  $("librarySection").style.display = (apps.length && !library.length && (pinned.length || hidden.length)) ? "none" : "";
+  $("emptyState").style.display = any ? "none" : "";
+  $("librarySection").style.display = (any && !items.length && (pinned.length || hidden.length)) ? "none" : "";
 
   $("pinnedCount").textContent = pinned.length || "";
-  $("libraryCount").textContent = library.length || "";
+  $("libraryCount").textContent = libCount || "";
   $("hiddenCount").textContent = hidden.length ? `(${hidden.length})` : "";
+
+  if (openFolderId) renderFolderView();
 }
-function byName(a, b){ return a.name.localeCompare(b.name, "pl"); }
-function fillGrid(id, list){
+function fillGrid(id, items){
   const g = $(id);
   g.textContent = "";
-  list.forEach(a => g.appendChild(makeTile(a)));
+  items.forEach(it => g.appendChild(it.kind === "folder" ? makeFolderTile(it.ref) : makeTile(it.ref)));
+}
+function fillList(id, items, flat){
+  const box = $(id);
+  box.textContent = "";
+  items.forEach(it => box.appendChild(it.kind === "folder" ? makeFolderNode(it.ref) : makeAppRow(it.ref, flat)));
 }
 
 /* ============================================================
    Arkusze
    ============================================================ */
-const sheets = ["addSheet", "actionSheet", "settingsSheet", "discoverSheet", "shareSheet"];
+const sheets = ["addSheet", "actionSheet", "settingsSheet", "discoverSheet", "shareSheet", "moveSheet", "folderSheet"];
 function openSheet(id){
   closeSheets(false);
   $("scrim").classList.add("show");
@@ -1060,7 +1597,9 @@ function resetForm(){
   pendingIcon = undefined;
   pendingCode = null;
   pendingNet = false;
+  pendingFiles = null;
   codeSource = "paste";
+  fillFolderSelect(openFolderId);
   $("fName").value = "";
   $("fCode").value = "";
   $("fileName").textContent = "";
@@ -1107,15 +1646,46 @@ $("segFile").addEventListener("click", () => {
   $("filePane").style.display = ""; $("pastePane").style.display = "none";
 });
 
+/* wybór folderu w formularzu (+ tworzenie nowego w locie) */
+function fillFolderSelect(selected){
+  const sel = $("fFolder");
+  sel.textContent = "";
+  const add = (value, label) => { const o = document.createElement("option"); o.value = value; o.textContent = label; sel.appendChild(o); };
+  add("", t("no_folder"));
+  [...folders].sort(byName).forEach(f => add(f.id, f.name));
+  add("__new", t("new_folder_opt"));
+  sel.value = selected && folders.some(f => f.id === selected) ? selected : "";
+  sel.dataset.prev = sel.value;
+}
+$("fFolder").addEventListener("change", async () => {
+  const sel = $("fFolder");
+  if (sel.value !== "__new"){ sel.dataset.prev = sel.value; return; }
+  const f = await promptNewFolder();
+  fillFolderSelect(f ? f.id : sel.dataset.prev);
+});
+
+const titleOf = (code, fallback) => {
+  const m = code.match(/<title[^>]*>([^<]+)<\/title>/i);
+  return (m ? m[1].trim() : fallback.replace(/\.html?$/i, "")).slice(0, 40);
+};
 $("btnPickFile").addEventListener("click", () => $("inpHtml").click());
 $("inpHtml").addEventListener("change", async e => {
-  const f = e.target.files[0];
-  if (!f) return;
+  const files = [...e.target.files];
+  if (!files.length) return;
+  // kilka plików naraz (np. notatki/opracowania od AI) — każdy staje się osobną apką
+  if (files.length > 1 && !editingId){
+    pendingFiles = await Promise.all(files.map(async f => { const code = await f.text(); return { code, name: titleOf(code, f.name) }; }));
+    pendingCode = null;
+    $("fileName").textContent = t("bulk_files")(files.length);
+    e.target.value = "";
+    return;
+  }
+  pendingFiles = null;
+  const f = files[0];
   pendingCode = await f.text();
   $("fileName").textContent = `${f.name} · ${fmtSize(pendingCode)}`;
   if (!$("fName").value){
-    const m = pendingCode.match(/<title[^>]*>([^<]+)<\/title>/i);
-    $("fName").value = m ? m[1].trim().slice(0, 40) : f.name.replace(/\.html?$/i, "");
+    $("fName").value = titleOf(pendingCode, f.name);
     updateIconPreview();
   }
   e.target.value = "";
@@ -1147,6 +1717,21 @@ $("inpIcon").addEventListener("change", e => {
 $("btnClearIcon").addEventListener("click", () => { pendingIcon = null; updateIconPreview(); });
 
 $("btnSave").addEventListener("click", async () => {
+  const folderId = $("fFolder").value && $("fFolder").value !== "__new" ? $("fFolder").value : null;
+  if (!editingId && codeSource === "file" && pendingFiles){
+    for (const pf of pendingFiles){
+      const app = {
+        id: newId(), name: pf.name, html: pf.code, icon: null,
+        pinned: false, hidden: false, allowNet: pendingNet, folderId,
+        created: Date.now(), updated: Date.now(), lastUsed: null
+      };
+      apps.push(app);
+      await dbPut(app);
+    }
+    toast(t("t_added_n") + pendingFiles.length);
+    closeSheets(); render();
+    return;
+  }
   const name = $("fName").value.trim();
   if (!name){ toast(t("t_name")); return; }
 
@@ -1159,17 +1744,18 @@ $("btnSave").addEventListener("click", async () => {
     if (pendingIcon !== undefined) app.icon = pendingIcon;
     if (code) app.html = code;
     app.allowNet = pendingNet;
+    if (app.folderId !== folderId){ app.folderId = folderId; app.order = null; }
     app.updated = Date.now();
     await dbPut(app);
     toast(t("t_saved"));
   } else {
     if (!code){ toast(t("t_code")); return; }
     const app = {
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      id: newId(),
       name,
       html: code,
       icon: pendingIcon !== undefined ? pendingIcon : null,
-      pinned: false, hidden: false, allowNet: pendingNet,
+      pinned: false, hidden: false, allowNet: pendingNet, folderId,
       created: Date.now(), updated: Date.now(), lastUsed: null
     };
     apps.push(app);
@@ -1216,6 +1802,7 @@ $("asHide").addEventListener("click", async () => {
 $("asEdit").addEventListener("click", () => {
   resetForm();
   editingId = selectedApp.id;
+  fillFolderSelect(selectedApp.folderId);
   $("fName").value = selectedApp.name;
   pendingNet = !!selectedApp.allowNet;
   updateNetSwitch();
@@ -1236,6 +1823,363 @@ $("asDelete").addEventListener("click", async () => {
   closeSheets(); render();
   toast(t("t_deleted"));
 });
+
+/* ============================================================
+   Foldery
+   ============================================================ */
+async function createFolder(name){
+  const f = { id: newId(), name: name.slice(0, 40), created: Date.now(), order: null, collapsed: false };
+  folders.push(f);
+  await putFolder(f);
+  return f;
+}
+async function promptNewFolder(){
+  const name = (prompt(t("folder_name"), t("folder_default")) || "").trim();
+  if (!name) return null;
+  const f = await createFolder(name);
+  toast(t("t_folder_created") + f.name);
+  return f;
+}
+/* kolejny numer na końcu kontenera (folderu albo najwyższego poziomu) */
+function nextOrder(fid){
+  const peers = fid ? appsIn(fid, true) : topLevelItems().map(i => i.ref);
+  return peers.reduce((m, x) => Math.max(m, x.order != null ? x.order : -1), -1) + 1;
+}
+async function moveToFolder(app, fid){
+  if ((app.folderId || null) === (fid || null)) return;
+  app.folderId = fid || null;
+  app.order = nextOrder(fid);
+  await dbPut(app);
+  const f = folders.find(x => x.id === fid);
+  toast(f ? t("t_moved") + f.name : t("t_unfiled"));
+}
+
+$("btnNewFolder").addEventListener("click", async () => { if (await promptNewFolder()) render(); });
+
+/* arkusz wyboru folderu dla apki */
+function pickRow(iconEl, label, checked, onPick){
+  const b = document.createElement("button");
+  b.appendChild(iconEl);
+  const g = document.createElement("span"); g.className = "grow"; g.textContent = label;
+  b.appendChild(g);
+  if (checked){ const c = document.createElement("span"); c.className = "ck"; c.textContent = "✓"; b.appendChild(c); }
+  b.addEventListener("click", onPick);
+  return b;
+}
+function placeholderIcon(svg){ const d = document.createElement("span"); d.className = "ph"; d.innerHTML = svg; return d; }
+function openMoveSheet(app){
+  const list = $("moveList");
+  list.textContent = "";
+  const done = async fid => { await moveToFolder(app, fid); closeSheets(); render(); };
+  list.appendChild(pickRow(placeholderIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16"/></svg>'),
+    t("no_folder"), !inFolder(app), () => done(null)));
+  [...folders].sort(byName).forEach(f => {
+    const ic = document.createElement("div"); ic.className = "icon folder-icon"; fillFolderIcon(ic, f);
+    list.appendChild(pickRow(ic, f.name, app.folderId === f.id, () => done(f.id)));
+  });
+  list.appendChild(pickRow(placeholderIcon('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>'),
+    t("new_folder"), false, async () => { const f = await promptNewFolder(); if (f) done(f.id); }));
+  openSheet("moveSheet");
+}
+$("asMove").addEventListener("click", () => openMoveSheet(selectedApp));
+
+/* arkusz akcji folderu */
+function openFolderSheet(f){
+  selectedFolder = f;
+  fillFolderIcon($("fsIcon"), f);
+  $("fsName").textContent = f.name;
+  $("fsMeta").textContent = t("n_apps")(appsIn(f.id, true).length);
+  openSheet("folderSheet");
+}
+$("fsOpen").addEventListener("click", () => { closeSheets(); openFolder(selectedFolder); });
+$("fsRename").addEventListener("click", async () => {
+  const name = (prompt(t("folder_name"), selectedFolder.name) || "").trim();
+  if (!name) return;
+  selectedFolder.name = name.slice(0, 40);
+  await putFolder(selectedFolder);
+  closeSheets(); render();
+});
+$("fsDelete").addEventListener("click", async () => {
+  const f = selectedFolder;
+  if (!confirm(t("c_folder_delete")(f.name))) return;
+  for (const a of apps.filter(a => a.folderId === f.id)){ a.folderId = null; a.order = null; await dbPut(a); }
+  await dbDel(f.id, FSTORE);
+  folders = folders.filter(x => x.id !== f.id);
+  if (openFolderId === f.id) closeFolder();
+  closeSheets(); render();
+});
+
+/* otwarty folder — nakładka jak na iOS */
+function openFolder(f){
+  openFolderId = f.id;
+  $("fvTitle").value = f.name;
+  renderFolderView();
+  $("folderView").classList.add("show");
+}
+function closeFolder(){
+  openFolderId = null;
+  $("folderView").classList.remove("show");
+}
+function renderFolderView(){
+  const f = folders.find(x => x.id === openFolderId);
+  if (!f){ closeFolder(); return; }
+  const list = appsIn(f.id);
+  fillGrid("fvGrid", asItems(list));
+  $("fvGrid").style.display = list.length ? "" : "none";
+  $("fvEmpty").style.display = list.length ? "none" : "";
+  if (document.activeElement !== $("fvTitle")) $("fvTitle").value = f.name;
+}
+$("folderView").addEventListener("click", e => { if (e.target === $("folderView") && !dragJustEnded) closeFolder(); });
+$("fvTitle").addEventListener("change", async () => {
+  const f = folders.find(x => x.id === openFolderId);
+  const name = $("fvTitle").value.trim();
+  if (!f) return;
+  if (!name){ $("fvTitle").value = f.name; return; }
+  f.name = name.slice(0, 40);
+  await putFolder(f);
+  render();
+});
+$("fvTitle").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+
+/* ============================================================
+   Układanie — przeciąganie palcem (Pointer Events).
+   Kafelek/wiersz zmienia miejsce wśród rodzeństwa w tym samym kontenerze;
+   apka upuszczona na środek folderu trafia do środka.
+   ============================================================ */
+let drag = null;
+function lookupObj(el){
+  return el.dataset.kind === "folder" ? folders.find(f => f.id === el.dataset.id) : apps.find(a => a.id === el.dataset.id);
+}
+function dragPointerDown(e, unit){
+  if (drag || e.button > 0 || $("searchInput").value.trim()) return;
+  drag = { unit, id: e.pointerId, x0: e.clientX, y0: e.clientY, started: false };
+  // nasłuch na oknie, nie na kafelku: przestawianie elementu w DOM zrywa pointer capture
+  addEventListener("pointermove", dragMove);
+  addEventListener("pointerup", dragEnd);
+  addEventListener("pointercancel", dragEnd);
+}
+function dragStart(){
+  const u = drag.unit;
+  const src = u.classList.contains("tree-node") ? u.querySelector(".row") : u; // folder w liście: duchem jest sam nagłówek
+  const r = src.getBoundingClientRect();
+  const ghost = src.cloneNode(true);
+  ghost.classList.add("drag-ghost");
+  ghost.classList.remove("dnd");
+  Object.assign(ghost.style, { width: r.width + "px", height: r.height + "px", left: r.left + "px", top: r.top + "px" });
+  document.body.appendChild(ghost);
+  Object.assign(drag, {
+    started: true, ghost, dx: drag.x0 - r.left, dy: drag.y0 - r.top,
+    container: u.parentElement, obj: lookupObj(u), target: null,
+    scroller: u.closest(".fv-panel")
+  });
+  u.classList.add("drag-src");
+  if (navigator.vibrate) navigator.vibrate(8);
+  drag.raf = requestAnimationFrame(autoScroll);
+}
+function dragMove(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.started){
+    if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+    dragStart();
+  }
+  drag.x = e.clientX; drag.y = e.clientY;
+  drag.ghost.style.left = (e.clientX - drag.dx) + "px";
+  drag.ghost.style.top = (e.clientY - drag.dy) + "px";
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  if (!under) return;
+
+  // cel: folder (tylko dla apek, tylko gdy palec jest na „środku” folderu)
+  let target = null;
+  if (drag.unit.dataset.kind === "app"){
+    const fEl = under.closest("[data-drop-folder]");
+    if (fEl && fEl.dataset.dropFolder !== drag.obj.folderId && isDropZone(fEl, e.clientX, e.clientY)) target = fEl;
+  }
+  if (target !== drag.target){
+    if (drag.target) drag.target.classList.remove("drop-target");
+    if (target) target.classList.add("drop-target");
+    drag.target = target;
+  }
+  // zmiana kolejności wśród rodzeństwa — dopiero po chwili zawieszenia palca (jak na iOS),
+  // żeby przelatywanie nad kafelkami w drodze do folderu niczego nie przetasowało;
+  // apka nad folderem nigdy go nie odpycha (folder = cel upuszczenia)
+  let sib = target ? null : under.closest(".dnd");
+  if (sib && (sib === drag.unit || sib.parentElement !== drag.container)) sib = null;
+  if (sib && drag.unit.dataset.kind === "app" && sib.dataset.kind === "folder") sib = null;
+  if (sib === drag.hoverSib) return;
+  drag.hoverSib = sib;
+  clearTimeout(drag.hoverTimer);
+  if (!sib) return;
+  const d = drag;
+  d.hoverTimer = setTimeout(() => {
+    if (drag !== d || d.hoverSib !== sib) return;
+    const kids = [...d.container.children];
+    if (kids.indexOf(d.unit) < kids.indexOf(sib)) sib.after(d.unit); else sib.before(d.unit);
+    d.hoverSib = null; // pozwól na kolejny ruch nad tym samym sąsiadem
+  }, 170);
+}
+function isDropZone(el, x, y){
+  const box = el.classList.contains("tile") ? el.querySelector(".icon") : el;
+  const r = box.getBoundingClientRect();
+  const ix = el.classList.contains("tile") ? r.width * .18 : 0;
+  const iy = el.classList.contains("tile") ? r.height * .18 : r.height * .22;
+  return x > r.left + ix && x < r.right - ix && y > r.top + iy && y < r.bottom - iy;
+}
+function autoScroll(){
+  if (!drag || !drag.started) return;
+  const edge = 70, y = drag.y;
+  if (y != null){
+    const sc = drag.scroller;
+    const top = sc ? sc.getBoundingClientRect().top : 0;
+    const bottom = sc ? sc.getBoundingClientRect().bottom : innerHeight;
+    const v = y < top + edge ? -(top + edge - y) / 6 : y > bottom - edge ? (y - bottom + edge) / 6 : 0;
+    if (v){ sc ? sc.scrollBy(0, v) : window.scrollBy(0, v); }
+  }
+  drag.raf = requestAnimationFrame(autoScroll);
+}
+async function dragEnd(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag;
+  drag = null;
+  removeEventListener("pointermove", dragMove);
+  removeEventListener("pointerup", dragEnd);
+  removeEventListener("pointercancel", dragEnd);
+  if (!d.started) return; // zwykłe dotknięcie — obsłuży "click"
+  cancelAnimationFrame(d.raf);
+  clearTimeout(d.hoverTimer);
+  d.ghost.remove();
+  d.unit.classList.remove("drag-src");
+  dragJustEnded = true;
+  setTimeout(() => { dragJustEnded = false; }, 60);
+
+  if (d.target){
+    d.target.classList.remove("drop-target");
+    await moveToFolder(d.obj, d.target.dataset.dropFolder);
+  } else {
+    // zapisz nową kolejność całego kontenera
+    const units = [...d.container.children].filter(el => el.classList.contains("dnd"));
+    for (let i = 0; i < units.length; i++){
+      const o = lookupObj(units[i]);
+      if (!o || o.order === i) continue;
+      o.order = i;
+      await (units[i].dataset.kind === "folder" ? putFolder(o) : dbPut(o));
+    }
+  }
+  render();
+}
+
+/* przejście w tryb układania: bieżący widok zamraża się jako „własna kolejność” */
+async function freezeOrder(){
+  const save = async (list, isFolder) => {
+    for (let i = 0; i < list.length; i++){
+      const o = list[i];
+      if (o.order === i) continue;
+      o.order = i;
+      await (isFolder(o) ? putFolder(o) : dbPut(o));
+    }
+  };
+  const isF = o => folders.includes(o);
+  await save(topLevelItems().map(i => i.ref), isF);
+  for (const f of folders) await save(appsIn(f.id), isF);
+  await save(sortApps(apps.filter(a => a.pinned && !a.hidden && !inFolder(a))), isF);
+}
+async function setArranging(on){
+  if (on && sortMode !== "custom"){
+    await freezeOrder();
+    setSort("custom");
+  }
+  arranging = on;
+  document.body.classList.toggle("arranging", on);
+  $("btnArrange").classList.toggle("on", on);
+  $("arrangeLabel").textContent = on ? t("done") : t("arrange");
+  if (on) toast(t("t_arrange"));
+}
+$("btnArrange").addEventListener("click", () => setArranging(!arranging));
+
+/* ---------- pasek: sortowanie i widok ---------- */
+function setSort(mode){
+  sortMode = mode;
+  setPref("sort", mode);
+  updateToolbar();
+  render();
+}
+function setView(mode){
+  viewMode = mode;
+  setPref("view", mode);
+  updateToolbar();
+  render();
+}
+function updateToolbar(){
+  $("sortLabel").textContent = t("sort_s_" + sortMode);
+  document.querySelectorAll("#sortMenu button").forEach(b => b.classList.toggle("on", b.dataset.sort === sortMode));
+  $("viewGrid").classList.toggle("on", viewMode === "grid");
+  $("viewList").classList.toggle("on", viewMode === "list");
+  $("arrangeLabel").textContent = arranging ? t("done") : t("arrange");
+}
+$("btnSort").addEventListener("click", e => { e.stopPropagation(); $("sortMenu").classList.toggle("show"); });
+document.querySelectorAll("#sortMenu button").forEach(b => b.addEventListener("click", () => {
+  $("sortMenu").classList.remove("show");
+  if (b.dataset.sort !== "custom" && arranging) setArranging(false);
+  setSort(b.dataset.sort);
+}));
+document.addEventListener("click", e => { if (!e.target.closest("#sortMenu")) $("sortMenu").classList.remove("show"); });
+$("viewGrid").addEventListener("click", () => setView("grid"));
+$("viewList").addEventListener("click", () => setView("list"));
+
+/* ============================================================
+   Motywy
+   ============================================================ */
+const THEME_COLORS = { classic: "#0F1311", glass: "#121628", matrix: "#000000" };
+function applyTheme(){
+  document.body.dataset.theme = theme;
+  document.querySelectorAll("#themeSeg button").forEach(b => b.classList.toggle("on", b.dataset.theme === theme));
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", THEME_COLORS[theme]);
+  if (theme === "matrix") startRain(); else stopRain();
+}
+document.querySelectorAll("#themeSeg button").forEach(b => b.addEventListener("click", () => {
+  theme = b.dataset.theme;
+  setPref("theme", theme);
+  applyTheme();
+}));
+
+/* deszcz znaków — ~15 kl./s, pauza gdy apka jest otwarta albo karta w tle */
+const rain = { raf: 0, last: 0, drops: [], cols: 0, onResize: null };
+function startRain(){
+  stopRain();
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("bgfx"), ctx = cv.getContext("2d");
+  const COL = 16;
+  const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789Z:.=*+-<>";
+  rain.onResize = () => {
+    cv.width = innerWidth; cv.height = innerHeight;
+    rain.cols = Math.ceil(innerWidth / COL);
+    rain.drops = Array.from({ length: rain.cols }, () => Math.random() * -60);
+  };
+  rain.onResize();
+  addEventListener("resize", rain.onResize);
+  const step = ts => {
+    rain.raf = requestAnimationFrame(step);
+    if (document.hidden || $("runner").classList.contains("show") || ts - rain.last < 66) return;
+    rain.last = ts;
+    ctx.fillStyle = "rgba(0,0,0,.09)";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = "#00FF41";
+    ctx.font = "15px monospace";
+    for (let i = 0; i < rain.cols; i++){
+      const y = rain.drops[i] * COL;
+      if (y > 0) ctx.fillText(chars[Math.random() * chars.length | 0], i * COL, y);
+      if (y > cv.height && Math.random() > .975) rain.drops[i] = 0;
+      rain.drops[i]++;
+    }
+  };
+  rain.raf = requestAnimationFrame(step);
+}
+function stopRain(){
+  cancelAnimationFrame(rain.raf);
+  if (rain.onResize) removeEventListener("resize", rain.onResize);
+  rain.onResize = null;
+  const cv = $("bgfx");
+  cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
+}
 
 /* ============================================================
    Uruchamianie
@@ -1283,7 +2227,7 @@ $("btnSettings").addEventListener("click", async () => {
 });
 
 $("btnBackup").addEventListener("click", () => {
-  const payload = JSON.stringify({ mapps: 1, exported: new Date().toISOString(), apps }, null, 0);
+  const payload = JSON.stringify({ mapps: 1, exported: new Date().toISOString(), apps, folders }, null, 0);
   const stamp = new Date().toISOString().slice(0, 10);
   downloadFile(`mapps-kopia-${stamp}.json`, payload, "application/json");
 });
@@ -1295,10 +2239,16 @@ $("inpBackup").addEventListener("change", async e => {
   try {
     const data = JSON.parse(await f.text());
     if (!(data.mapps || data.minihub) || !Array.isArray(data.apps)) throw new Error("format");
+    // foldery z kopii: ten sam id = ten sam folder, więc apki same do niego wrócą
+    for (const f of Array.isArray(data.folders) ? data.folders : []){
+      if (!f || !f.id || !f.name || folders.some(x => x.id === f.id)) continue;
+      folders.push(f);
+      await putFolder(f);
+    }
     let added = 0;
     for (const a of data.apps){
       if (!a.name || !a.html) continue;
-      if (apps.some(x => x.id === a.id)) a.id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+      if (apps.some(x => x.id === a.id)) a.id = newId();
       apps.push(a);
       await dbPut(a);
       added++;
@@ -1459,7 +2409,7 @@ async function installFromCatalog(m, btn){
     if (!r.ok) throw 0;
     const html = await r.text();
     const app = {
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      id: newId(),
       catalogId: m.id,
       name: m.name,
       html,
@@ -1596,17 +2546,19 @@ $("aboutRow").addEventListener("click", () => {
    ============================================================ */
 (async function init(){
   applyI18n();
+  applyTheme();
+  updateToolbar();
   maybeShowOnboarding();
   $("langSel").value = L;
   $("langSel").addEventListener("change", () => {
     L = $("langSel").value;
     try { localStorage.setItem(LKEY, L); } catch {}
-    applyI18n(); render();
+    applyI18n(); updateToolbar(); render();
     if (catalogCache) renderCatalog(catalogCache);
   });
   $("verBadge").textContent = "v" + APP_VERSION;
   await openDB();
-  apps = await dbAll();
+  [apps, folders] = await Promise.all([dbAll(), dbAll(FSTORE)]);
   render();
   checkUpdate();
   // trwałość danych — iOS respektuje to dla apek z ekranu głównego
